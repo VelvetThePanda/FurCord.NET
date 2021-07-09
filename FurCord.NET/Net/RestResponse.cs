@@ -1,16 +1,21 @@
-﻿using System.Net.Http;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace FurCord.NET
 {
 	public class RestResponse
 	{
+		public Dictionary<string, string> Headers { get; private set; }
 		public int ResponseCode { get; private set; }
 		public string Content { get; private set; }
 
-		public RestResponse(HttpResponseMessage httpResponseMessage, string content)
+		internal RestResponse(int responseCode, string content, HttpResponseHeaders headers)
 		{
-			ResponseCode = (int)httpResponseMessage.StatusCode;
+			ResponseCode = responseCode;
 			Content = content;
+			Headers = headers.ToDictionary(h => h.Key, h => string.Join(", ", h.Value));
 		}
 	}
 }
