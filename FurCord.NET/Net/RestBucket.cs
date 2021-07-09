@@ -8,8 +8,12 @@ using FurCord.NET.Enums;
 
 namespace FurCord.NET
 {
+    /// <summary>
+    /// Represents a rate-limit bucket.
+    /// </summary>
 	public sealed class RestBucket
     {
+        //This could just be [MethodImpl(MethodImplOptions.Synchronized)] on the getter, right?
         private readonly SemaphoreSlim _wait = new(1);
 		
         /// <summary>

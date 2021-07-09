@@ -10,26 +10,13 @@ namespace FurCord.NET.Testing
 	{
 		static async Task Main(string[] args)
 		{
-			var rest = new RestClient(new("https://discord.com/api/v9"), "FurCord.NET / 0.1a (VelvetThePanda)", File.ReadAllText("token.txt"));
-			var req = new JsonRestRequest<object>("channels/:channel_id/messages", new { content = "Ratelimit test!"}, RestMethod.POST, new() {["channel_id"] = 794055225517408277});
-
-			var sw = Stopwatch.StartNew();
-			for (int i = 0; i < 12; i++)
+			var rest = new RestClient(File.ReadAllText("token.txt"));
+			for (int i = 0; i < 50; i++)
 			{
+				var req = new JsonRestRequest<object>("channels/:channel_id/messages", new {content = $"This is an automated test of FurCord.NET's REST ratelimit handler. [{i}/50]"}, RestMethod.POST, new() {["channel_id"] = 794055225517408277});
 				await rest.DoRequestAsync(req);
-				var res = await req.Response;
-				
-				sw.Stop();
-				Console.WriteLine($"Request returned {res.ResponseCode} in {sw.ElapsedMilliseconds}");
-				
-				if (res.ResponseCode is 400)
-					Console.WriteLine(res.Content);
-				
-				sw.Restart();
+				await req.Response;
 			}
-			
-			
-			
 			await Task.Delay(-1);
 		}
 	}

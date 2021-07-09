@@ -14,30 +14,47 @@ using FurCord.NET.Enums;
 
 namespace FurCord.NET
 {
+	/// <summary>
+	/// A REST-Only client. 
+	/// </summary>
 	public sealed class RestClient
 	{
+		//Underlying client to make requests with.
 		private readonly HttpClient _client;
+		
+		//Auth headers, typically.
 		private readonly HttpHeaders _headers;
-
+		
+		//Used to replace :channel_id -> 859093960030027806
 		private readonly Regex _routeRegex = new(@":([a-z_]+)");
-
+		
+		// Thanks Jax <3
 		private readonly RestBucket _globalBucket = new(10000, 1000, DateTime.Today + TimeSpan.FromDays(1), "global", true);
-		
-		
-		/// <summary>
-		/// hash -> bucket
-		/// </summary>
+
+		// hash -> bucket
 		private readonly ConcurrentDictionary<string, RestBucket> _buckets = new();
 		
-		
-		/// <summary>
-		/// route -> hash
-		/// </summary>
+		// route -> hash
 		private readonly ConcurrentDictionary<string, string> _hashes = new();
 
-		private readonly ConcurrentDictionary<string, int> _requestQueue = new();
+		/*
+		 * TODO: Possibly add a request queue? Seems uncessary because buckets are self-contained, but it's up for consideration.
+		 */
+
+
+		/// <summary>
+		/// Constructs a new <see cref="RestClient"/> that will .
+		/// </summary>
+		/// <param name="token"></param>
+		public RestClient(string token) : this(new("https://discord.com/api/v9"), token) { }
 		
-		public RestClient(Uri baseUri, string userAgent, string token)
+		
+		/// <summary>
+		/// Constructs a new <see cref="RestClient"/>.
+		/// </summary>
+		/// <param name="baseUri">The base path that all requests will be sent on.</param>
+		/// <param name="token">The token to use for authorization.</param>
+		public RestClient(Uri baseUri, string token)
 		{
 			var handler = new HttpClientHandler()
 			{
@@ -47,10 +64,15 @@ namespace FurCord.NET
 
 			_client = new(handler);
 			_client.BaseAddress = baseUri;
-			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgent);
+			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", token);
 		}
-
+		
+		
+		/// <summary>
+		/// Executes a REST request, or requeues and waits if necessary. The result is set on <see cref="RestRequest.Response"/> of the passed request..
+		/// </summary>
+		/// <param name="request">The request to requeue.</param>
 		public Task DoRequestAsync(RestRequest request) => DoRequestAsync(request, null, null);
 		
 		internal async Task DoRequestAsync(RestRequest request, TaskCompletionSource? wait = null, TaskCompletionSource<RestResponse>? requestTcs = null)
@@ -67,10 +89,13 @@ namespace FurCord.NET
 			if (!await bucket.CanUseAsync() && wait is null)
 			{
 				var delay = (bucket.ResetsAt - now) + TimeSpan.FromMilliseconds(100); //Just in case.//
-				Console.WriteLine($"Cooling down! Requeing request in {delay.TotalMilliseconds}");
+				if (delay < TimeSpan.Zero)
+					delay = TimeSpan.Zero;
+				//TODO: ILogger
+				Console.WriteLine($"Oh no, you've been ratelimited for {delay.TotalMilliseconds:N0} ms!");
 
+				wait = new();
 				requestTcs = new();
-				wait = new TaskCompletionSource();
 				request.Response = requestTcs.Task;
 
 				_ = Task.Delay(delay).ContinueWith((_, t) => ((TaskCompletionSource) t).TrySetResult(), wait);
@@ -94,20 +119,3 @@ namespace FurCord.NET
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
