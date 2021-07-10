@@ -5,7 +5,7 @@ namespace FurCord.NET.Entities
 	/// <summary>
 	/// Represents a unique Discord object.
 	/// </summary>
-	public abstract class Snowflake
+	public interface Snowflake
 	{
 		/// <summary>
 		/// The id of this snowflake.

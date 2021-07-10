@@ -7,20 +7,24 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FurCord.NET.Enums;
+using Newtonsoft.Json;
 
 namespace FurCord.NET
 {
 	/// <summary>
 	/// A REST-Only client. 
 	/// </summary>
-	public sealed class RestClient
+	public sealed class RestClient : IRestClient
 	{
 		//Underlying client to make requests with.
 		private readonly HttpClient _client;
+
+		private readonly HttpMessageHandler _handler;
 		
 		//Auth headers, typically.
 		private readonly HttpHeaders _headers;
@@ -41,12 +45,18 @@ namespace FurCord.NET
 		 * TODO: Possibly add a request queue? Seems uncessary because buckets are self-contained, but it's up for consideration.
 		 */
 
-
+		/// <summary>
+		/// Creates a default instance of a <see cref="RestClient"/>.
+		/// </summary>
+		/// <param name="token">The token to authorize requests with.</param>
+		/// <returns>A <see cref="RestClient"/> with default parameters.</returns>
+		public static RestClient CreateDefault(string token) => new(token, null);
+		
 		/// <summary>
 		/// Constructs a new <see cref="RestClient"/> that will .
 		/// </summary>
 		/// <param name="token"></param>
-		public RestClient(string token) : this(new("https://discord.com/api/v9"), token) { }
+		public RestClient(string token, HttpMessageHandler handler) : this(new("https://discord.com/api/v9"), token, handler) { }
 		
 		
 		/// <summary>
@@ -54,15 +64,17 @@ namespace FurCord.NET
 		/// </summary>
 		/// <param name="baseUri">The base path that all requests will be sent on.</param>
 		/// <param name="token">The token to use for authorization.</param>
-		public RestClient(Uri baseUri, string token)
-		{
-			var handler = new HttpClientHandler()
+		/// <param name="handler>The handler to use for this client, or a default handler if none is specified.</param>
+		public RestClient(Uri baseUri, string token, HttpMessageHandler? handler)
+		{ 
+			handler ??= new HttpClientHandler()
 			{
 				UseCookies = false,
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
 			};
 
 			_client = new(handler);
+
 			_client.BaseAddress = baseUri;
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", token);
@@ -74,6 +86,16 @@ namespace FurCord.NET
 		/// </summary>
 		/// <param name="request">The request to requeue.</param>
 		public Task DoRequestAsync(RestRequest request) => DoRequestAsync(request, null, null);
+
+		public async Task<T> DoRequestAsync<T>(RestRequest request)
+		{
+			await DoRequestAsync(request, null, null);
+			RestResponse response = await request.Response;
+
+			var ret = JsonConvert.DeserializeObject<T>(response.Content);
+			
+			return ret;
+		}
 		
 		internal async Task DoRequestAsync(RestRequest request, TaskCompletionSource? wait = null, TaskCompletionSource<RestResponse>? requestTcs = null)
 		{
