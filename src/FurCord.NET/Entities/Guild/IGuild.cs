@@ -28,8 +28,10 @@ namespace FurCord.NET.Entities
 		
 		public IChannel? AfkChannel { get; }
 		
-		[JsonProperty("")]
+		[JsonProperty("afk_timeout")]
 		internal int AfkTimeout { get; }
 		
+		[JsonProperty("mfa_level")]
+		public MFALevel MFALevel { get; }
 	}
 }
