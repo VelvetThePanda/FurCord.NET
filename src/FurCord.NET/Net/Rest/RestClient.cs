@@ -23,11 +23,6 @@ namespace FurCord.NET
 	{
 		//Underlying client to make requests with.
 		private readonly HttpClient _client;
-
-		private readonly HttpMessageHandler _handler;
-		
-		//Auth headers, typically.
-		private readonly HttpHeaders _headers;
 		
 		//Used to replace :channel_id -> 859093960030027806
 		private readonly Regex _routeRegex = new(":([a-z_]+)");
@@ -51,20 +46,21 @@ namespace FurCord.NET
 		/// <param name="token">The token to authorize requests with.</param>
 		/// <returns>A <see cref="RestClient"/> with default parameters.</returns>
 		public static RestClient CreateDefault(string token) => new(token, null);
-		
+
 		/// <summary>
-		/// Constructs a new <see cref="RestClient"/> that will .
+		/// Constructs a new <see cref="RestClient"/> with a specified handler.
 		/// </summary>
-		/// <param name="token"></param>
-		public RestClient(string token, HttpMessageHandler handler) : this(new("https://discord.com/api/v9/"), token, handler) { }
-		
-		
+		/// <param name="token">The token to use for authorization.</param>
+		/// <param name="handler">The handler to use for HTTP traffic.</param>
+		public RestClient(string token, HttpMessageHandler? handler) : this(new("https://discord.com/api/v9/"), token, handler) { }
+
+
 		/// <summary>
 		/// Constructs a new <see cref="RestClient"/>.
 		/// </summary>
 		/// <param name="baseUri">The base path that all requests will be sent on.</param>
 		/// <param name="token">The token to use for authorization.</param>
-		/// <param name="handler>The handler to use for this client, or a default handler if none is specified.</param>
+		/// <param name="handler">The handler to use for this client, or a default handler if none is specified.</param>
 		public RestClient(Uri baseUri, string token, HttpMessageHandler? handler)
 		{ 
 			handler ??= new HttpClientHandler()
@@ -73,38 +69,38 @@ namespace FurCord.NET
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
 			};
 
-			_client = new(handler);
+			_client = new(handler) {BaseAddress = baseUri};
 
-			_client.BaseAddress = baseUri;
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", token);
 		}
 		
 		
+		/// <inheritdoc />
 		/// <summary>
-		/// Executes a REST request, or requeues and waits if necessary. The result is set on <see cref="RestRequest.Response"/> of the passed request..
+		/// Executes a REST request, or requeues and waits if necessary. The result is set on <see cref="P:FurCord.NET.RestRequest.Response" /> of the passed request..
 		/// </summary>
 		/// <param name="request">The request to requeue.</param>
-		public Task DoRequestAsync(RestRequest request) => DoRequestAsync(request, null, null);
-
+		public Task DoRequestAsync(RestRequest request) => ExecuteRequestAsync(request);
+	
 		public async Task<T> DoRequestAsync<T>(RestRequest request)
 		{
-			await DoRequestAsync(request, null, null);
+			await ExecuteRequestAsync(request);
 			RestResponse response = await request.Response;
 
 			var ret = JsonConvert.DeserializeObject<T>(response.Content);
 			
-			return ret;
+			return ret!;
 		}
 		
-		internal async Task DoRequestAsync(RestRequest request, TaskCompletionSource? wait = null, TaskCompletionSource<RestResponse>? requestTcs = null)
+		internal async Task ExecuteRequestAsync(RestRequest request, TaskCompletionSource? wait = null, TaskCompletionSource<RestResponse>? requestTcs = null)
 		{
 			if (wait is not null) 
 				await wait.Task;
 
 			var req = request.CreateRequestMessage(_routeRegex.Replace(request.Route, re => request.Params[re.Groups[1].Value].ToString()));
 			
-			_buckets.TryGetValue(request.Route, out RestBucket bucket);
+			_buckets.TryGetValue(request.Route, out RestBucket? bucket);
 			bucket ??= _globalBucket;
 
 			var now = DateTime.UtcNow;
@@ -121,7 +117,7 @@ namespace FurCord.NET
 				request.Response = requestTcs.Task;
 
 				_ = Task.Delay(delay).ContinueWith((_, t) => ((TaskCompletionSource) t).TrySetResult(), wait);
-				_ = DoRequestAsync(request, wait, requestTcs);
+				_ = ExecuteRequestAsync(request, wait, requestTcs);
 				
 				return;
 			}
