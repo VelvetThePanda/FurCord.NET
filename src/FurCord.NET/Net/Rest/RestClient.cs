@@ -1,17 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using FurCord.NET.Enums;
 using Newtonsoft.Json;
 
 namespace FurCord.NET
@@ -19,6 +11,7 @@ namespace FurCord.NET
 	/// <summary>
 	/// A REST-Only client. 
 	/// </summary>
+	/// <inheritdoc cref="IRestClient"/>
 	public sealed class RestClient : IRestClient
 	{
 		//Underlying client to make requests with.
@@ -28,7 +21,7 @@ namespace FurCord.NET
 		private readonly Regex _routeRegex = new(":([a-z_]+)");
 		
 		// Thanks Jax <3
-		private readonly RestBucket _globalBucket = new(10000, 1000, DateTime.Today + TimeSpan.FromDays(1), "global", true);
+		private readonly RestBucket _globalBucket = new(10000, 10000, DateTime.Today + TimeSpan.FromDays(1), "global", true);
 
 		// hash -> bucket
 		private readonly ConcurrentDictionary<string, RestBucket> _buckets = new();
@@ -47,8 +40,9 @@ namespace FurCord.NET
 		/// <returns>A <see cref="RestClient"/> with default parameters.</returns>
 		public static RestClient CreateDefault(string token) => new(token, null);
 
+		/// <inheritdoc />
 		/// <summary>
-		/// Constructs a new <see cref="RestClient"/> with a specified handler.
+		/// Constructs a new <see cref="T:FurCord.NET.RestClient" /> with a specified handler.
 		/// </summary>
 		/// <param name="token">The token to use for authorization.</param>
 		/// <param name="handler">The handler to use for HTTP traffic.</param>
@@ -82,23 +76,26 @@ namespace FurCord.NET
 		/// </summary>
 		/// <param name="request">The request to requeue.</param>
 		public Task DoRequestAsync(RestRequest request) => ExecuteRequestAsync(request);
-	
+
 		public async Task<T> DoRequestAsync<T>(RestRequest request)
 		{
 			await ExecuteRequestAsync(request);
 			RestResponse response = await request.Response;
 
+			if (response.ResponseCode == (int) HttpStatusCode.NoContent)
+				return default!;
+
 			var ret = JsonConvert.DeserializeObject<T>(response.Content);
 			
 			return ret!;
 		}
-		
-		internal async Task ExecuteRequestAsync(RestRequest request, TaskCompletionSource? wait = null, TaskCompletionSource<RestResponse>? requestTcs = null)
+
+		private async Task ExecuteRequestAsync(RestRequest request, TaskCompletionSource? wait = null, TaskCompletionSource<RestResponse>? requestTcs = null)
 		{
 			if (wait is not null) 
 				await wait.Task;
 
-			var req = request.CreateRequestMessage(_routeRegex.Replace(request.Route, re => request.Params[re.Groups[1].Value].ToString()));
+			var req = request.CreateRequestMessage(_routeRegex.Replace(request.Route, re => request.Params[re.Groups[1].Value].ToString()!));
 			
 			_buckets.TryGetValue(request.Route, out RestBucket? bucket);
 			bucket ??= _globalBucket;
@@ -110,13 +107,13 @@ namespace FurCord.NET
 				if (delay < TimeSpan.Zero)
 					delay = TimeSpan.Zero;
 				//TODO: ILogger
-				Console.WriteLine($"Oh no, you've been ratelimited for {delay.TotalMilliseconds:F0} ms!");
+				Console.WriteLine($"Cooling down! Bucket resets in {delay.TotalMilliseconds:F0} ms.");
 
 				wait = new();
 				requestTcs = new();
 				request.Response = requestTcs.Task;
 
-				_ = Task.Delay(delay).ContinueWith((_, t) => ((TaskCompletionSource) t).TrySetResult(), wait);
+				_ = Task.Delay(delay).ContinueWith((_, t) => ((TaskCompletionSource) t!).TrySetResult(), wait);
 				_ = ExecuteRequestAsync(request, wait, requestTcs);
 				
 				return;
@@ -129,7 +126,9 @@ namespace FurCord.NET
 
 			if (RestBucket.TryParse(res.Headers, out bucket)) 
 				_buckets.AddOrUpdate(request.Route, bucket, (_, old) => old.ResetsAt < bucket.ResetsAt ? bucket : old);
-
+			
+			//TODO: Handle API Bans (aka getting a 429 on the first request)
+			
 			if (requestTcs is null)
 				request.Response = Task.FromResult(ret);
 			else

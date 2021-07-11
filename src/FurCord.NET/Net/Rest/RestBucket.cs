@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using FurCord.NET.Enums;
 
 namespace FurCord.NET
 {
