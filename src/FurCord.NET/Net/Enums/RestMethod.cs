@@ -1,4 +1,4 @@
-﻿namespace FurCord.NET.Enums
+﻿namespace FurCord.NET
 {
 	/// <summary>
 	/// Represents 

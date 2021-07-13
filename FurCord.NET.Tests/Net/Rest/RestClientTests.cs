@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using FurCord.NET.Enums;
+using FurCord.NET;
 using Moq;
 using NUnit.Framework;
 

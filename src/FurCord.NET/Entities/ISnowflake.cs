@@ -22,6 +22,6 @@ namespace FurCord.NET.Entities
 		public DateTimeOffset CreationDate => DiscordEpoch.AddSeconds(Id << 22);
 		//TODO: Add client.
 
-		private static readonly DateTimeOffset DiscordEpoch = new DateTimeOffset(2015, 1, 1, 0, 0, 0, TimeSpan.Zero);
+		private static readonly DateTimeOffset DiscordEpoch = new DateTime(2015, 1, 1);
 	}
 }

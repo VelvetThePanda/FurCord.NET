@@ -3,16 +3,17 @@
 namespace FurCord.NET.Entities
 {
 	
-	public class User : IUser
+	public sealed class User : IUser
 	{
 		[JsonProperty("id")]
 		public ulong Id { get; internal set; }
 
 		[JsonProperty("username")]
 		public string Username { get; internal set; }
-		
+
+		public string AvatarUrl { get; internal set; }
 		[JsonProperty("avatar")]
-		public string AvatarHash { get;  set; }
+		public string AvatarHash { get; internal set; }
 		
 		[JsonProperty("discriminator")]
 		public string Discriminator { get; internal set; }
@@ -21,6 +22,6 @@ namespace FurCord.NET.Entities
 		public int Flags { get; internal set; }
 
 		[JsonProperty("bot")]
-		public bool Bot { get; internal set; }
+		public bool IsBot { get; internal set; }
 	}
 }

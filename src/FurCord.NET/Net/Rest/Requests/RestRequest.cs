@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using FurCord.NET.Enums;
+using FurCord.NET;
 
 namespace FurCord.NET
 {

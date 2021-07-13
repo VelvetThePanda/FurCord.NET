@@ -8,14 +8,13 @@ using Newtonsoft.Json.Linq;
 
 namespace FurCord.NET.Entities
 {
-	internal class SnowflakeDictionaryConverter : JsonConverter
+	public sealed class SnowflakeDictionaryConverter<T> : JsonConverter where T : ISnowflake
 	{
 		public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
 		{
 			if (value is null)
 				writer.WriteNull();
-			else
-				JToken.FromObject(value.GetType().GetTypeInfo().GetDeclaredProperty("Values")!.GetValue(value)!).WriteTo(writer);
+			else JToken.FromObject(value.GetType().GetTypeInfo().GetDeclaredProperty("Values")!.GetValue(value)!).WriteTo(writer);
 		}
 
 		public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
@@ -28,13 +27,12 @@ namespace FurCord.NET.Entities
 			object dict = ctor.Invoke(Array.Empty<object>());
 
 			PropertyInfo indexer = objectType.GetTypeInfo().GetDeclaredProperty("Item")!;
-			var entries = (IEnumerable) serializer.Deserialize(reader, objectType.GenericTypeArguments[1].MakeArrayType())!;
+			var entries = (IEnumerable) serializer.Deserialize(reader, typeof(T).MakeArrayType())!;
 
 			foreach (var ent in entries)
 				indexer.SetValue(dict, ent, new object[] {(ent as ISnowflake)!.Id});
-
-
-			return null;
+			
+			return dict;
 		}
 
 		public override bool CanConvert(Type objectType)
@@ -45,7 +43,8 @@ namespace FurCord.NET.Entities
 				return objectType.GenericTypeArguments[0] == typeof(ulong) &&
 				       genericTypedef.GenericTypeArguments[1].IsAssignableTo(typeof(ISnowflake));
 
-			if (!genericTypedef.IsAssignableTo(typeof(ConcurrentDictionary<,>))) return false;
+			if (!genericTypedef.IsAssignableTo(typeof(ConcurrentDictionary<,>))) 
+				return false;
 
 			return objectType.GenericTypeArguments[0] == typeof(ulong) &&
 			       genericTypedef.GenericTypeArguments[1].IsAssignableTo(typeof(ISnowflake));
