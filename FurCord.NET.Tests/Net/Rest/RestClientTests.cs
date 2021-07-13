@@ -11,7 +11,7 @@ namespace FurCord.NET.Tests.Net.Rest
 	{
 		private Mock<FakeHttpMessageHandler> _httpMessageHandler;
 		
-		private class FakeHttpMessageHandler : HttpMessageHandler
+		public class FakeHttpMessageHandler : HttpMessageHandler
 		{
 			public virtual HttpResponseMessage Send(HttpRequestMessage request) => throw new NotImplementedException();
 
