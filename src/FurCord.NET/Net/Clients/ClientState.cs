@@ -1,4 +1,4 @@
-namespace FurCord.NET
+namespace FurCord.NET.Net
 {
 	public class ClientState
 	{

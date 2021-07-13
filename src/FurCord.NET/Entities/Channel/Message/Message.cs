@@ -3,21 +3,23 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using FurCord.NET.Entities.Converters;
 using FurCord.NET.Entities;
+using FurCord.NET.Net;
 using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities
 {
 	///<inheritdoc cref="IMessage"/>
-	public class Message : IMessage
+	public sealed class Message : IMessage
 	{
-		[JsonProperty("id")]
 		public ulong Id { get; internal set; }
-		
+
+		IDiscordClient ISnowflake.Client { get; set; }
+
 		public IUser Author { get; internal set; }
-		
-		public IReadOnlyDictionary<ulong, IUser> MentionedUsers { get; }
-		
-		public IReadOnlyDictionary<ulong, IChannel> MentionedChannels { get; }
+
+		public IReadOnlyDictionary<ulong, IUser> MentionedUsers => _mentionedUsers;
+
+		public IReadOnlyDictionary<ulong, IChannel> MentionedChannels => _mentionedChannels;
 
 		[JsonProperty("content")]
 		public string Content { get; internal set; }
@@ -31,6 +33,7 @@ namespace FurCord.NET.Entities
 		
 		[JsonProperty("mentioned_channels")]
 		[JsonConverter(typeof(SnowflakeDictionaryConverter<Channel>))]
-		internal ConcurrentDictionary<ulong, IUser> _mentionedChannels = new();
+		internal ConcurrentDictionary<ulong, IChannel> _mentionedChannels = new();
+		
 	}
 }

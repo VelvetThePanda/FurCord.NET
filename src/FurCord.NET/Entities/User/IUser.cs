@@ -1,4 +1,6 @@
-﻿using FurCord.NET.Entities.Converters;
+﻿using System;
+using System.Threading.Tasks;
+using FurCord.NET.Entities.Converters;
 using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities
@@ -38,7 +40,18 @@ namespace FurCord.NET.Entities
 		[JsonProperty("public_flags")]
 		public int Flags { get; }
 
+		/// <summary>
+		/// Whether this user is a bot.
+		/// </summary>
 		[JsonProperty("bot")]
 		public bool IsBot { get; }
+
+		/// <summary>
+		/// Sends a message to this user. 
+		/// </summary>
+		/// <param name="message">The message to send.</param>
+		/// <returns>The returned message.</returns>
+		/// <exception cref="InvalidOperationException">The object's client was not set.</exception>
+		public Task<IMessage> SendMessageAsync(IMessage message);
 	}
 }

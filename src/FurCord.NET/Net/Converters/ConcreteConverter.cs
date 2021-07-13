@@ -3,14 +3,12 @@ using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities.Converters
 {
-	public class ConcreteTypeConverter<TConcrete> : JsonConverter
+	internal sealed class ConcreteTypeConverter<TConcrete> : JsonConverter<TConcrete>
 	{
-		public override bool CanConvert(Type objectType) => objectType.IsAssignableFrom(typeof(TConcrete));
-
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override TConcrete? ReadJson(JsonReader reader, Type objectType, TConcrete? value, bool hasExistingValue, JsonSerializer serializer)
 			=> serializer.Deserialize<TConcrete>(reader);
 
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, TConcrete? value, JsonSerializer serializer)
 			=> serializer.Serialize(writer, value);
 	}
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using FurCord.NET.Entities.Converters;
+using FurCord.NET.Net;
 using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities
@@ -15,6 +15,12 @@ namespace FurCord.NET.Entities
 		/// </summary>
 		[JsonProperty("id")]
 		public ulong Id { get; }
+		
+		/// <summary>
+		/// The client this snowflake is associated with.
+		/// </summary>
+		[JsonIgnore]
+		internal IDiscordClient Client { get; set; }
 		
 		/// <summary>
 		/// Gets when this snowflake was created.

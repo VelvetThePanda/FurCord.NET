@@ -1,3 +1,5 @@
+using FurCord.NET.Net;
+
 namespace FurCord.NET.Entities
 {
 	/// <summary>
@@ -6,6 +8,8 @@ namespace FurCord.NET.Entities
 	public class Channel : IChannel
 	{
 		public ulong Id { get; internal set; }
+		
+		IDiscordClient ISnowflake.Client { get; set; }
 
 		public string Name { get; internal set; }
 

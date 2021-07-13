@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using FurCord.NET.Entities;
 
-namespace FurCord.NET
+namespace FurCord.NET.Net
 {
 	public interface IDiscordClient
 	{
@@ -14,5 +14,6 @@ namespace FurCord.NET
 		public Task ConnectAsync();
 		public Task DisconnectAsync();
 
+		public Task<IMessage> SendMessageAsync(IUser user, IMessage message);
 	}
 }

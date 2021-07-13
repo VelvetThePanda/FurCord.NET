@@ -1,5 +1,8 @@
+using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using FurCord.NET.Entities.Converters;
+using FurCord.NET.Net;
 using FurCord.NET.Utils;
 using Newtonsoft.Json;
 
@@ -12,6 +15,8 @@ namespace FurCord.NET.Entities
 	public sealed class Member : IMember
 	{ 
 		public ulong Id => User.Id;
+
+		IDiscordClient ISnowflake.Client { get; set; }
 		
 		public string Username => User.Username;
 
@@ -25,6 +30,10 @@ namespace FurCord.NET.Entities
 		public int Flags => User.Flags;
 		public bool IsBot => User.IsBot;
 		
+		public Task<IMessage> SendMessageAsync(IMessage message)
+			=> (this as ISnowflake).Client?.SendMessageAsync(this, message) ?? 
+			   throw new InvalidOperationException("This object does not have a client associated with it. This is likely a cache error.");
+
 		public string? Nickname { get; internal set; }
 
 		public string GuildAvatarUrl => GuildAvatarHash is null ?  AvatarUrl  : CDN.GuildAvatar((this as IMember).GuildId, Id, GuildAvatarHash);

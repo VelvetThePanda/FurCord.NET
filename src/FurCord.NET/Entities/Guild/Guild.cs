@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FurCord.NET.Entities.Converters;
+using FurCord.NET.Net;
 using FurCord.NET.Utils;
 using Newtonsoft.Json;
 
@@ -15,6 +16,8 @@ namespace FurCord.NET.Entities
 	public sealed class Guild : IGuild
 	{
 		public ulong Id { get; internal set; }
+
+		IDiscordClient ISnowflake.Client { get; set; }
 
 		public string Name { get; internal set; }
 
@@ -55,8 +58,9 @@ namespace FurCord.NET.Entities
 		[JsonProperty("members")]
 		[JsonConverter(typeof(SnowflakeDictionaryConverter<Member>))]
 		internal ConcurrentDictionary<ulong, IMember> _members = new();
-		
-		
+		private IDiscordClient _client;
+
+
 		/// <summary>
 		/// Populates this guild's cache by setting GuildId and Guild properties appropriately.
 		/// </summary>
