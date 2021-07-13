@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FurCord.NET.Net;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 
 namespace FurCord.NET
@@ -28,6 +30,7 @@ namespace FurCord.NET
 		private readonly ConcurrentDictionary<string, RestBucket> _buckets = new();
 
 		private readonly DiscordConfiguration _config;
+		private readonly ILogger _logger;
 
 		private const string BaseUrl = "https://discord.com/api/v9";
 		
@@ -43,6 +46,7 @@ namespace FurCord.NET
 		/// </remarks>
 		internal RestClient(HttpMessageHandler handler)
 		{
+			_logger = new Logger<RestClient>(new NullLoggerFactory());
 			_client = new(handler) {BaseAddress = new(BaseUrl)};
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 		}
@@ -54,11 +58,11 @@ namespace FurCord.NET
 				UseCookies = false,
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
 			};
-			_config = config;
-			
+
+			_logger = config.LoggerFactory.CreateLogger<RestClient>();
 			_client = new(handler) {BaseAddress = new(BaseUrl)};
 
-			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", _config.Token);
+			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", config.Token);
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 		}
 		
@@ -99,8 +103,8 @@ namespace FurCord.NET
 				
 				if (delay < TimeSpan.Zero)
 					delay = TimeSpan.Zero;
-				//TODO: ILogger
-				Console.WriteLine($"Cooling down! Bucket resets in {delay.TotalMilliseconds:F0} ms.");
+				
+				_logger.LogWarning("Rate-limit hit for route: {Route}. Bucket resets in {BucketResetMs} ms", req.RequestUri, delay);
 
 				wait = new();
 				requestTcs = new();

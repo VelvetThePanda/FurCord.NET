@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace FurCord.NET.Net
 {
@@ -8,5 +9,8 @@ namespace FurCord.NET.Net
 	public sealed class DiscordConfiguration
 	{
 		public string Token { internal get; set; }
+
+		public ILoggerFactory LoggerFactory { internal get; set; } = new LoggerFactory();
+
 	}
 }
