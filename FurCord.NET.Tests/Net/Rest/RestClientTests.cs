@@ -39,7 +39,7 @@ namespace FurCord.NET.Tests.Net.Rest
 					StatusCode = HttpStatusCode.OK
 				});
 			
-			var client = new RestClient("", _httpMessageHandler.Object);
+			var client = new RestClient(_httpMessageHandler.Object);
 			var request = new RestRequest("", RestMethod.GET);
 			
 			//Act
@@ -66,7 +66,7 @@ namespace FurCord.NET.Tests.Net.Rest
 					StatusCode = HttpStatusCode.OK
 				});
 			
-			var client = new RestClient("", _httpMessageHandler.Object);
+			var client = new RestClient(_httpMessageHandler.Object);
 			
 			var request = new RestRequest("channels/:channel_id", RestMethod.GET, new() { ["channel_id"] = 0});
 			
@@ -102,7 +102,7 @@ namespace FurCord.NET.Tests.Net.Rest
 			.Returns(initialRateLimitHeaderMessage)
 			.Returns(okayRateLimitHeaderMessage);
 			
-			var client = new RestClient("", _httpMessageHandler.Object);
+			var client = new RestClient(_httpMessageHandler.Object);
 			var request = new RestRequest("", RestMethod.GET);
 			
 			//Act

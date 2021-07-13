@@ -32,21 +32,20 @@ namespace FurCord.NET
 		private const string BaseUrl = "https://discord.com/api/v9";
 		
 		/* TODO: Possibly add a request queue? Seems uncessary because buckets are self-contained, but it's up for consideration. */
-
-		/// <summary>
-		/// Creates a default instance of a <see cref="RestClient"/>.
-		/// </summary>
-		/// <param name="token">The token to authorize requests with.</param>
-		/// <returns>A <see cref="RestClient"/> with default parameters.</returns>
-		public static RestClient CreateDefault(string token) => new(token, null);
-
-		/// <inheritdoc />
+		
 		/// <summary>
 		/// Constructs a new <see cref="T:FurCord.NET.RestClient" /> with a specified handler.
 		/// </summary>
 		/// <param name="token">The token to use for authorization.</param>
 		/// <param name="handler">The handler to use for HTTP traffic.</param>
-		internal RestClient(string token, HttpMessageHandler? handler) : this(new("https://discord.com/api/v9/"), token, handler) { }
+		/// <remarks>
+		///	This is internal for the purposes of unit testing. it should not be used under any other circumstances.
+		/// </remarks>
+		internal RestClient(HttpMessageHandler handler)
+		{
+			_client = new(handler) {BaseAddress = new(BaseUrl)};
+			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
+		}
 		
 		public RestClient(DiscordConfiguration config)
 		{
@@ -61,29 +60,7 @@ namespace FurCord.NET
 
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", _config.Token);
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
-			
 		}
-
-		/// <summary>
-		/// Constructs a new <see cref="RestClient"/>.
-		/// </summary>
-		/// <param name="baseUri">The base path that all requests will be sent on.</param>
-		/// <param name="token">The token to use for authorization.</param>
-		/// <param name="handler">The handler to use for this client, or a default handler if none is specified.</param>
-		internal RestClient(Uri baseUri, string token, HttpMessageHandler? handler)
-		{ 
-			handler ??= new HttpClientHandler()
-			{
-				UseCookies = false,
-				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-			};
-
-			_client = new(handler) {BaseAddress = baseUri};
-
-			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
-			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", token);
-		}
-		
 		
 		/// <inheritdoc />
 		/// <summary>
@@ -119,6 +96,7 @@ namespace FurCord.NET
 			if (!await bucket.CanUseAsync() && wait is null)
 			{
 				var delay = (bucket.ResetsAt - now) + TimeSpan.FromMilliseconds(100); //Just in case.//
+				
 				if (delay < TimeSpan.Zero)
 					delay = TimeSpan.Zero;
 				//TODO: ILogger
@@ -143,11 +121,15 @@ namespace FurCord.NET
 				_buckets.AddOrUpdate(request.Route, bucket, (_, old) => old.ResetsAt < bucket.ResetsAt ? bucket : old);
 			
 			//TODO: Handle API Bans (aka getting a 429 on the first request)
-			
+
 			if (requestTcs is null)
+			{
 				request.Response = Task.FromResult(ret);
+			}
 			else
+			{
 				requestTcs.TrySetResult(ret);
+			}
 		}
 	}
 }
