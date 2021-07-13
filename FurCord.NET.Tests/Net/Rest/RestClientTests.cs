@@ -1,10 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading;
 using System.Threading.Tasks;
-using FurCord.NET;
 using Moq;
 using NUnit.Framework;
 
@@ -14,14 +11,13 @@ namespace FurCord.NET.Tests.Net.Rest
 	{
 		private Mock<FakeHttpMessageHandler> _httpMessageHandler;
 		
-		public class FakeHttpMessageHandler : HttpMessageHandler
+		private class FakeHttpMessageHandler : HttpMessageHandler
 		{
 			public virtual HttpResponseMessage Send(HttpRequestMessage request) => throw new NotImplementedException();
 
 			protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken) 
 				=> Task.FromResult(Send(request));
 		}
-		
 		
 		[OneTimeSetUp]
 		public void SetUp()
@@ -71,13 +67,14 @@ namespace FurCord.NET.Tests.Net.Rest
 				});
 			
 			var client = new RestClient("", _httpMessageHandler.Object);
+			
 			var request = new RestRequest("channels/:channel_id", RestMethod.GET, new() { ["channel_id"] = 0});
 			
 			//Act
 			await client.DoRequestAsync(request);
 			
 			//Assert
-			Assert.AreEqual("https://discord.com/api/v9/channels/0", reqMessage.RequestUri.ToString());
+			Assert.AreEqual("https://discord.com/api/v9/channels/0", reqMessage.RequestUri!.ToString());
 		}
 
 		[Test]

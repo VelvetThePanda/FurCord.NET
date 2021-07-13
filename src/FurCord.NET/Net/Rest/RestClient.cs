@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using FurCord.NET.Net;
 using Newtonsoft.Json;
 
 namespace FurCord.NET
@@ -23,15 +24,12 @@ namespace FurCord.NET
 		// Thanks Jax <3
 		private readonly RestBucket _globalBucket = new(10000, 10000, DateTime.Today + TimeSpan.FromDays(1), "global", true);
 
-		// hash -> bucket
+		// route -> bucket
 		private readonly ConcurrentDictionary<string, RestBucket> _buckets = new();
-		
-		// route -> hash
-		private readonly ConcurrentDictionary<string, string> _hashes = new();
 
-		/*
-		 * TODO: Possibly add a request queue? Seems uncessary because buckets are self-contained, but it's up for consideration.
-		 */
+		private readonly DiscordConfiguration _config;
+		
+		/* TODO: Possibly add a request queue? Seems uncessary because buckets are self-contained, but it's up for consideration. */
 
 		/// <summary>
 		/// Creates a default instance of a <see cref="RestClient"/>.
@@ -46,8 +44,23 @@ namespace FurCord.NET
 		/// </summary>
 		/// <param name="token">The token to use for authorization.</param>
 		/// <param name="handler">The handler to use for HTTP traffic.</param>
-		public RestClient(string token, HttpMessageHandler? handler) : this(new("https://discord.com/api/v9/"), token, handler) { }
+		internal RestClient(string token, HttpMessageHandler? handler) : this(new("https://discord.com/api/v9/"), token, handler) { }
+		
+		public RestClient(DiscordConfiguration config)
+		{
+			var handler = new HttpClientHandler()
+			{
+				UseCookies = false,
+				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+			};
+			_config = config;
+			
+			_client = new(handler) {BaseAddress = _config.RestEndpointUri};
 
+			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", _config.Token);
+			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
+			
+		}
 
 		/// <summary>
 		/// Constructs a new <see cref="RestClient"/>.
@@ -55,7 +68,7 @@ namespace FurCord.NET
 		/// <param name="baseUri">The base path that all requests will be sent on.</param>
 		/// <param name="token">The token to use for authorization.</param>
 		/// <param name="handler">The handler to use for this client, or a default handler if none is specified.</param>
-		public RestClient(Uri baseUri, string token, HttpMessageHandler? handler)
+		internal RestClient(Uri baseUri, string token, HttpMessageHandler? handler)
 		{ 
 			handler ??= new HttpClientHandler()
 			{
