@@ -28,6 +28,8 @@ namespace FurCord.NET
 		private readonly ConcurrentDictionary<string, RestBucket> _buckets = new();
 
 		private readonly DiscordConfiguration _config;
+
+		private const string BaseUrl = "https://discord.com/api/v9";
 		
 		/* TODO: Possibly add a request queue? Seems uncessary because buckets are self-contained, but it's up for consideration. */
 
@@ -55,7 +57,7 @@ namespace FurCord.NET
 			};
 			_config = config;
 			
-			_client = new(handler) {BaseAddress = _config.RestEndpointUri};
+			_client = new(handler) {BaseAddress = new(BaseUrl)};
 
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", _config.Token);
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
