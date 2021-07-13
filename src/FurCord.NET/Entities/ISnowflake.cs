@@ -13,6 +13,7 @@ namespace FurCord.NET.Entities
 		/// <summary>
 		/// The id of this snowflake.
 		/// </summary>
+		[JsonProperty("id")]
 		public ulong Id { get; }
 		
 		/// <summary>
