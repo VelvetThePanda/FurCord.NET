@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using FurCord.NET.Entities.Converters;
@@ -43,6 +44,8 @@ namespace FurCord.NET.Entities
 		ulong IMember.GuildId { get; set; }
 		
 		IGuild IMember.Guild { get; set; }
+		
+		IReadOnlyList<ulong> IMember.Roles { get; set; }
 
 		[JsonProperty("user")]
 		[JsonConverter(typeof(ConcreteTypeConverter<User>))]

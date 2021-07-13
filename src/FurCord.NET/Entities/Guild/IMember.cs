@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using FurCord.NET.Entities.Converters;
 using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities
@@ -20,7 +22,7 @@ namespace FurCord.NET.Entities
 		public string DisplayName => Nickname ?? Username;
 		
 		[JsonProperty("avatar")]
-		public string? GuildAvatarHash { get; }
+		public new string? AvatarHash { get; }
 		
 		/// <summary>
 		/// The Id of the guild this member belongs to.
@@ -34,5 +36,9 @@ namespace FurCord.NET.Entities
 		[JsonIgnore]
 		public IGuild Guild { get; internal set; }
 		
+		
+		[JsonProperty("roles")]
+		internal IReadOnlyList<ulong> Roles { get; set; }
+
 	}
 }

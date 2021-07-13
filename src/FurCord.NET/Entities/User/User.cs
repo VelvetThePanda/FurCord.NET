@@ -14,7 +14,8 @@ namespace FurCord.NET.Entities
 		public string Username { get; internal set; }
 
 		public string AvatarUrl { get; internal set; }
-
+		
+		[JsonProperty("avatar")]
 		public string AvatarHash { get; internal set; }
 		
 		public string Discriminator { get; internal set; }
