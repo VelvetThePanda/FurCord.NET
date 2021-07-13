@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using FurCord.NET.Entities.Converters;
 using FurCord.NET.Entities;
 using Newtonsoft.Json;
@@ -19,6 +20,17 @@ namespace FurCord.NET.Entities
 		[JsonProperty("author")]
 		[JsonConverter(typeof(ConcreteTypeConverter<User>))]
 		public IUser Author { get; }
+		
+		
+		/// <summary>
+		/// The users mentioned in this message.
+		/// </summary>
+		public IReadOnlyDictionary<ulong, IUser> MentionedUsers { get; }
+		
+		/// <summary>
+		/// The channels mentioned in this message.
+		/// </summary>
+		public IReadOnlyDictionary<ulong, IChannel> MentionedChannels { get; }
 		
 		/// <summary>
 		/// When this message was created.
