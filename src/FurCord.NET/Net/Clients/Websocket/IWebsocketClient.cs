@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Emzi0767.Utilities;
 using FurCord.NET.EventArgs;
 
-namespace FurCord.NET.Net.Websocket
+namespace FurCord.NET.Net
 {
 	public interface IWebsocketClient
 	{

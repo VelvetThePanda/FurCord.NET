@@ -12,7 +12,7 @@ using FurCord.NET.EventArgs;
 
 namespace FurCord.NET.Net.Websocket
 {
-	public sealed class WebSocketClient : IWebsocketClient
+	internal sealed class WebSocketClient : IWebsocketClient
 	{
 		private const int OutgoingChunkSize = 4096; // 4 KiB
 		private const int IncomingChunkSize = 32768; // 32 KiB
@@ -90,6 +90,9 @@ namespace FurCord.NET.Net.Websocket
 							break;
 						
 					} while (!result.EndOfMessage);
+					
+					if (result.Count is 0)
+						continue;
 
 					switch (result.MessageType)
 					{
@@ -104,7 +107,6 @@ namespace FurCord.NET.Net.Websocket
 						default:
 							throw new NotSupportedException();
 					}
-					
 
 				} while (!_cancellation.IsCancellationRequested);
 			}
