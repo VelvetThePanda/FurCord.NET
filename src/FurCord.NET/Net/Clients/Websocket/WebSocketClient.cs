@@ -12,7 +12,7 @@ using FurCord.NET.EventArgs;
 
 namespace FurCord.NET.Net.Websocket
 {
-	internal sealed class WebSocketClient : IWebsocketClient
+	public sealed class WebSocketClient : IWebsocketClient
 	{
 		private const int OutgoingChunkSize = 4096; // 4 KiB
 		private const int IncomingChunkSize = 32768; // 32 KiB
@@ -30,7 +30,8 @@ namespace FurCord.NET.Net.Websocket
 			
 			await _connectionLock.WaitAsync(_cancellation).ConfigureAwait(false);
 			await _underlyingSocket.ConnectAsync(uri, _cancellation).ConfigureAwait(false);
-			
+			_ = ReceiveLoopAsync();
+			_connectionLock.Release();
 		}
 
 		public WebSocketClient(CancellationToken token = default)
@@ -51,7 +52,7 @@ namespace FurCord.NET.Net.Websocket
 				var bytes = Encoding.UTF8.GetBytes(message);
 				var byteLength = bytes.Length;
 
-				var chunks = byteLength % OutgoingChunkSize is var outchunk and 0 ? outchunk : byteLength % OutgoingChunkSize + 1;
+				var chunks = byteLength / OutgoingChunkSize is var outchunk and 0 ? outchunk : byteLength / OutgoingChunkSize + 1;
 
 				for (int i = 0; i < chunks; i++)
 				{
@@ -80,7 +81,6 @@ namespace FurCord.NET.Net.Websocket
 			{
 				do
 				{
-					byte[] recievedBytes;
 					WebSocketReceiveResult result;
 					do
 					{
@@ -91,8 +91,20 @@ namespace FurCord.NET.Net.Websocket
 						
 					} while (!result.EndOfMessage);
 
-					recievedBytes = new byte[result.Count];
-					buffer.CopyTo(recievedBytes.AsSpan());
+					switch (result.MessageType)
+					{
+						case WebSocketMessageType.Text:
+							await _messageReceived.InvokeAsync(this, new(buffer));
+							break;
+						
+						case WebSocketMessageType.Close:
+							break;
+
+						case WebSocketMessageType.Binary:
+						default:
+							throw new NotSupportedException();
+					}
+					
 
 				} while (!_cancellation.IsCancellationRequested);
 			}
