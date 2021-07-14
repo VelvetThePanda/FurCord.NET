@@ -5,6 +5,7 @@ namespace FurCord.NET.Net
 {
 	public class DiscordClient : IDiscordClient
 	{
+		
 		public int Ping { get; }
 		public ClientState State { get; }
 		public IUser CurrentUser { get; }
@@ -13,6 +14,11 @@ namespace FurCord.NET.Net
 		public async Task<IMessage> SendMessageAsync(IUser user, IMessage message)
 		{
 			return null;
+		}
+
+		public DiscordClient(DiscordConfiguration config)
+		{
+				
 		}
 	}
 }

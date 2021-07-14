@@ -15,5 +15,6 @@ namespace FurCord.NET.Net
 		public Task DisconnectAsync();
 
 		public Task<IMessage> SendMessageAsync(IUser user, IMessage message);
+		
 	}
 }
