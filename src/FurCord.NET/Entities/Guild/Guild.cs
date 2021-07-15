@@ -1,8 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FurCord.NET.Entities.Converters;
 using FurCord.NET.Net;
 using FurCord.NET.Utils;
 using Newtonsoft.Json;

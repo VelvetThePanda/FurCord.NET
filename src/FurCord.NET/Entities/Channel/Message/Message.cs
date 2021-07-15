@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using FurCord.NET.Entities.Converters;
-using FurCord.NET.Entities;
 using FurCord.NET.Net;
 using Newtonsoft.Json;
 

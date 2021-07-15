@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FurCord.NET.Entities
+﻿namespace FurCord.NET.Entities
 {
 	/// <summary>
 	/// A button that can be pushed/clicked.

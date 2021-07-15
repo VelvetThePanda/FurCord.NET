@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using FurCord.NET.Entities.Converters;
 using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities

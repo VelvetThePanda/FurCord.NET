@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using FurCord.NET.Entities.Converters;
 using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities

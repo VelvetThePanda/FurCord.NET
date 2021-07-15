@@ -1,14 +1,11 @@
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Emzi0767.Types;
 using Emzi0767.Utilities;
-using FurCord.NET;
 
 namespace FurCord.NET.Net
 {

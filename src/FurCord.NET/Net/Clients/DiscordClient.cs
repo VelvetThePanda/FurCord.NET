@@ -2,10 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FurCord.NET.Entities;
-using FurCord.NET.Net;
 using FurCord.NET.Net.Enums;
 using FurCord.NET.Utils;
-using Newtonsoft.Json;
 
 namespace FurCord.NET.Net
 {

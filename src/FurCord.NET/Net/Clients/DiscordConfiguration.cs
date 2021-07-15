@@ -1,5 +1,4 @@
 using System;
-using FurCord.NET.Net;
 using FurCord.NET.Net.Enums;
 using Microsoft.Extensions.Logging;
 

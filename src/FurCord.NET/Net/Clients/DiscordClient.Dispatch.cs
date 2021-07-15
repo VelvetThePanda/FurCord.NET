@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using FurCord.NET;
-using FurCord.NET.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
