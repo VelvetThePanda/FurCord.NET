@@ -24,5 +24,9 @@ namespace FurCord.NET.Net
 		/// The client is in the process of caching data.
 		/// </summary>
 		Caching,
+		/// <summary>
+		/// The client is in a ready state and REST or Gateway commands can be issued.
+		/// </summary>
+		Ready
 	}
 }

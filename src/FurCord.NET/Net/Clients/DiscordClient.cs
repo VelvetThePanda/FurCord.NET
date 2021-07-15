@@ -18,8 +18,8 @@ namespace FurCord.NET.Net
 		private readonly string _token;
 		private readonly GatewayIntents _intents;
 		private GatewayInfo _gatewayInfo;
-
-		private CancellationToken _cancellation = new();
+		private CancellationTokenSource _cts = new();
+		private CancellationToken _cancellation;
 		
 		internal IRestClient Rest { get; set; }
 		internal IWebSocketClient SocketClient { get; set; }
@@ -36,6 +36,7 @@ namespace FurCord.NET.Net
 			SocketClient.Headers.TryAdd("Authorization", $"Bot {_token}");
 
 			SocketClient.MessageReceived += HandleDispatch;
+			
 		}
 		
 		public async Task ConnectAsync()
