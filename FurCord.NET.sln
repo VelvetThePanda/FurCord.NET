@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurCord.NET", "src\FurCord.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurCord.NET.Testing", "tests\FurCord.NET.Testing\FurCord.NET.Testing.csproj", "{8C78F1E9-7591-43E1-87D0-068D0B6B65FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurCord.NET.Tests", "FurCord.NET.Tests\FurCord.NET.Tests.csproj", "{4875BB8D-DB12-4236-95B9-9E45A40A5ECD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurCord.NET.Tests", "tests\FurCord.NET.Tests\FurCord.NET.Tests.csproj", "{4875BB8D-DB12-4236-95B9-9E45A40A5ECD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
