@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\FurCord.NET\FurCord.NET.csproj" />
       <ProjectReference Include="..\src\FurCord.NET\FurCord.NET.csproj" />
     </ItemGroup>
 
