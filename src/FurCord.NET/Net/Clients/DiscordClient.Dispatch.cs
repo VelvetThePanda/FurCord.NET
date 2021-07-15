@@ -9,8 +9,6 @@ namespace FurCord.NET.Net
 {
 	public partial class DiscordClient
 	{
-		private Task _heartbeatTask;
-		
 		private long _lastSequence;
 		private string _sessionId;
 		private int _heartbeatInterval;
@@ -23,6 +21,7 @@ namespace FurCord.NET.Net
 			var dispatchTask = payload.OpCode switch
 			{
 				GatewayOpCode.Dispatch => Task.CompletedTask,
+				GatewayOpCode.Reconnect => throw new NotSupportedException(),
 				GatewayOpCode.Hello => OnHelloAsync((payload.Data as JObject)!.ToObject<HelloPayload>()!)
 			};
 			_lastSequence = payload.Sequence ?? _lastSequence;
@@ -32,15 +31,19 @@ namespace FurCord.NET.Net
 		private async Task OnHelloAsync(HelloPayload payload)
 		{
 			_heartbeatInterval = payload.HeartbeatInverval;
-			_heartbeatTask = Task.Run(HeartbeatLoopAsync, _cancellation);
-
-			await Task.Delay(1000);
+			_ = Task.Run(HeartbeatLoopAsync, _cancellation);
 			
 			if (string.IsNullOrEmpty(_sessionId))
 				await IdentifyAsync();
 			//TODO: Resume
 		}
 
+		private async Task Resume()
+		{
+			
+		}
+		
+		
 		private async Task HeartbeatLoopAsync()
 		{
 			while (!_cancellation.IsCancellationRequested)

@@ -12,7 +12,7 @@ namespace FurCord.NET.Net
 	public sealed partial class DiscordClient : IDiscordClient
 	{
 		public int Ping { get; }
-		public ClientState State { get; }
+		public ClientState State { get; } = ClientState.Disconnected;
 		public IUser CurrentUser { get; }
 
 		private bool _started;

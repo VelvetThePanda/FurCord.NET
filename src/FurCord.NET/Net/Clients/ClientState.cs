@@ -1,7 +1,11 @@
 namespace FurCord.NET.Net
 {
-	public class ClientState
+	public enum ClientState
 	{
-		
+		Disconnected,
+		Connected,
+		Faulted,
+		Caching,
+		Ready,
 	}
 }
