@@ -2,11 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Emzi0767.Utilities;
-using FurCord.NET.EventArgs;
 
 namespace FurCord.NET.Net
 {
-	
 	public delegate IWebSocketClient WebSocketClientFactoryDelegate();
 	
 	public interface IWebSocketClient
@@ -33,5 +31,10 @@ namespace FurCord.NET.Net
 		public Task SendMessageAsync(string message);
 
 		public event AsyncEventHandler<IWebSocketClient, SocketMessageEventArgs> MessageReceived;
+
+		public event AsyncEventHandler<IWebSocketClient, SocketErroredEventArgs> SocketErorred;
+
+		public event AsyncEventHandler<IWebSocketClient, SocketClosedEventArgs> SocketClosed;
+		
 	}
 }

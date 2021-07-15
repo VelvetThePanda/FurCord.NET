@@ -1,6 +1,6 @@
 namespace FurCord.NET.Net
 {
-	internal enum GatewayOpCode : int
+	internal enum GatewayOpCode
 	{
 		/// <summary>
 		/// Used for dispatching events.
@@ -8,7 +8,10 @@ namespace FurCord.NET.Net
 		Dispatch = 0,
 
 		/// <summary>
-		/// Used for pinging the gateway or client, to ensure the connection is still alive.
+		/// Sent to or from the gateway.
+		/// <br/>
+		///	<b>When sending</b>: Used to tell the gateway the client is still connected.
+		/// <b>When receiving</b>: Used to tell the client to immediately send a heartbeat.
 		/// </summary>
 		Heartbeat = 1,
 
@@ -28,42 +31,42 @@ namespace FurCord.NET.Net
 		VoiceStateUpdate = 4,
 
 		/// <summary>
-		/// Used for pinging the voice gateway or client, to ensure the connection is still alive.
+		/// Sent to the voice gateway to keep a session alive.
 		/// </summary>
 		VoiceServerPing = 5,
 
 		/// <summary>
-		/// Used to resume a closed connection.
+		/// Sent to the gateway to resume an existing session.
 		/// </summary>
 		Resume = 6,
 
 		/// <summary>
-		/// Used to notify the client that it has to reconnect.
+		/// Sent by the gateway to tell the client to reconnect.
 		/// </summary>
 		Reconnect = 7,
 
 		/// <summary>
-		/// Used to request guild members.
+		/// Sent to the gateway to request guild members.
 		/// </summary>
 		RequestGuildMembers = 8,
 
 		/// <summary>
-		/// Used to notify the client about an invalidated session.
+		/// Sent by the gateway that a session has been invalidated.
 		/// </summary>
 		InvalidSession = 9,
 
 		/// <summary>
-		/// Used by the gateway upon connecting.
+		/// Sent by the gateway to signify a websocket connection has been established.
 		/// </summary>
 		Hello = 10,
 
 		/// <summary>
-		/// Used to acknowledge a heartbeat.
+		/// Sent from the gateway to tell the client that the gateway has acknowledged the sent heartbeat.
 		/// </summary>
 		HeartbeatAck = 11,
 
 		/// <summary>
-		/// Used to request guild synchronization.
+		/// 
 		/// </summary>
 		GuildSync = 12
 	}
