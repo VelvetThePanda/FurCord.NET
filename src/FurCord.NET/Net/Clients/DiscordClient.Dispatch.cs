@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using FurCord.NET.Net.Enums;
+using FurCord.NET.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -27,20 +29,35 @@ namespace FurCord.NET.Net
 			_lastSequence = payload.Sequence ?? _lastSequence;
 			await dispatchTask;
 		}
-
+		
+		/// <summary>
+		/// Response to OP10 (HELLO) by heartbeating and identifying if necessary.
+		/// </summary>
+		/// <param name="payload"></param>
 		private async Task OnHelloAsync(HelloPayload payload)
 		{
 			_heartbeatInterval = payload.HeartbeatInverval;
 			_ = Task.Run(HeartbeatLoopAsync, _cancellation);
-			
+
 			if (string.IsNullOrEmpty(_sessionId))
-				await IdentifyAsync();
-			//TODO: Resume
+				await IdentifyAsync().ConfigureAwait(false);
+			else await ResumeAsync().ConfigureAwait(false);
 		}
 
-		private async Task Resume()
+		private async Task ResumeAsync()
 		{
-			
+			var gatewayResumePayload = new GatewayPayload<ResumePayload>
+			{
+				OpCode = GatewayOpCode.Resume,
+				Data = new()
+				{
+					Token = StringUtils.GetFormattedToken(TokenType.Bot, _token),
+					Sequence = _lastSequence,
+					Session = _sessionId
+				}
+			};
+
+			await SocketClient.SendMessageAsync(JsonConvert.SerializeObject(gatewayResumePayload));
 		}
 		
 		
