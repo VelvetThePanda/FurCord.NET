@@ -6,7 +6,10 @@ using FurCord.NET.EventArgs;
 
 namespace FurCord.NET.Net
 {
-	public interface IWebsocketClient
+	
+	public delegate IWebSocketClient WebSocketClientFactoryDelegate();
+	
+	public interface IWebSocketClient
 	{
 		public ConcurrentDictionary<string, string> Headers { get; }
 		
@@ -29,6 +32,6 @@ namespace FurCord.NET.Net
 		/// <param name="message">The message to send.</param>
 		public Task SendMessageAsync(string message);
 
-		public event AsyncEventHandler<IWebsocketClient, SocketMessageEventArgs> MessageReceived;
+		public event AsyncEventHandler<IWebSocketClient, SocketMessageEventArgs> MessageReceived;
 	}
 }

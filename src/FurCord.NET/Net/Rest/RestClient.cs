@@ -33,6 +33,8 @@ namespace FurCord.NET
 		private readonly ILogger _logger;
 
 		private const string BaseUrl = "https://discord.com/api/v9";
+
+		public static IRestClient CreateNew(DiscordConfiguration config) => new RestClient(config);
 		
 		/* TODO: Possibly add a request queue? Seems uncessary because buckets are self-contained, but it's up for consideration. */
 		
@@ -62,7 +64,7 @@ namespace FurCord.NET
 			_logger = config.LoggerFactory.CreateLogger<RestClient>();
 			_client = new(handler) {BaseAddress = new(BaseUrl)};
 
-			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", config.Token);
+			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "Bot " + config.Token);
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 		}
 		

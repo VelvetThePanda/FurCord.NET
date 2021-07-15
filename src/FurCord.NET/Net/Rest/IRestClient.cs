@@ -1,7 +1,10 @@
 ﻿using System.Threading.Tasks;
+using FurCord.NET.Net;
 
 namespace FurCord.NET
 {
+	public delegate IRestClient RestClientFactoryDelegate(DiscordConfiguration config);
+	
 	public interface IRestClient
 	{
 		/// <summary>

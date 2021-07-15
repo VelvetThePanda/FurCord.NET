@@ -10,27 +10,36 @@ using Emzi0767.Types;
 using Emzi0767.Utilities;
 using FurCord.NET.EventArgs;
 
-namespace FurCord.NET.Net.Websocket
+namespace FurCord.NET.Net
 {
-	internal sealed class WebSocketClient : IWebsocketClient
+	public sealed class WebSocketClient : IWebSocketClient
 	{
 		private const int OutgoingChunkSize = 4096; // 4 KiB
 		private const int IncomingChunkSize = 32768; // 32 KiB
 		
 		private readonly SemaphoreSlim _connectionLock = new(1);
 		private readonly SemaphoreSlim _sendingLock = new(1);
-		private readonly CancellationToken _cancellation = new();
+		private readonly CancellationToken _cancellation;
 		private readonly ClientWebSocket _underlyingSocket = new();
 		
 		public ConcurrentDictionary<string, string> Headers { get; } = new();
+
+		public static IWebSocketClient CreateNew() => new WebSocketClient();
+		
 		public async Task ConnectAsync(Uri uri)
 		{
 			try { await DisconnectAsync().ConfigureAwait(false); }
 			catch { }
 			
+			foreach ((var name, var value) in Headers)
+				_underlyingSocket.Options.SetRequestHeader(name, value);
+			
 			await _connectionLock.WaitAsync(_cancellation).ConfigureAwait(false);
+			
 			await _underlyingSocket.ConnectAsync(uri, _cancellation).ConfigureAwait(false);
-			_ = ReceiveLoopAsync();
+			
+			
+			_ = Task.Run(ReceiveLoopAsync);
 			_connectionLock.Release();
 		}
 
@@ -52,7 +61,7 @@ namespace FurCord.NET.Net.Websocket
 				var bytes = Encoding.UTF8.GetBytes(message);
 				var byteLength = bytes.Length;
 
-				var chunks = byteLength / OutgoingChunkSize is var outchunk and 0 ? outchunk : byteLength / OutgoingChunkSize + 1;
+				var chunks = byteLength / OutgoingChunkSize is 0 ? 1 : byteLength / OutgoingChunkSize + 1;
 
 				for (int i = 0; i < chunks; i++)
 				{
@@ -62,6 +71,7 @@ namespace FurCord.NET.Net.Websocket
 					await _underlyingSocket
 						.SendAsync(new(bytes, start, length), WebSocketMessageType.Text, i == byteLength - 1, _cancellation)
 						.ConfigureAwait(false);
+					Console.WriteLine($"Sent chunk {i}/{chunks}, payload: {message} ({byteLength} bytes)");
 				}
 			}
 			catch (OperationCanceledException) { }
@@ -74,7 +84,6 @@ namespace FurCord.NET.Net.Websocket
 
 		internal async Task ReceiveLoopAsync()
 		{
-			await Task.Yield();
 			var buffer = ArrayPool<byte>.Shared.Rent(IncomingChunkSize);
 
 			try
@@ -84,20 +93,19 @@ namespace FurCord.NET.Net.Websocket
 					WebSocketReceiveResult result;
 					do
 					{
-						result = await _underlyingSocket.ReceiveAsync(buffer, CancellationToken.None);
+						result = await _underlyingSocket.ReceiveAsync(buffer, CancellationToken.None).ConfigureAwait(false);
 						
 						if (result.MessageType is WebSocketMessageType.Close)
 							break;
-						
+						Console.WriteLine("Got message");
 					} while (!result.EndOfMessage);
 					
-					if (result.Count is 0)
-						continue;
+					Console.WriteLine($"Message received: {Encoding.UTF8.GetString(buffer[..result.Count])}");
 
 					switch (result.MessageType)
 					{
 						case WebSocketMessageType.Text:
-							await _messageReceived.InvokeAsync(this, new(buffer));
+							await _messageReceived.InvokeAsync(this, new(buffer[..result.Count]));
 							break;
 						
 						case WebSocketMessageType.Close:
@@ -114,7 +122,7 @@ namespace FurCord.NET.Net.Websocket
 		
 		}
 
-		public event AsyncEventHandler<IWebsocketClient, SocketMessageEventArgs>? MessageReceived
+		public event AsyncEventHandler<IWebSocketClient, SocketMessageEventArgs>? MessageReceived
 		{
 			add => _messageReceived.Register(value);
 			remove => _messageReceived.Unregister(value);
