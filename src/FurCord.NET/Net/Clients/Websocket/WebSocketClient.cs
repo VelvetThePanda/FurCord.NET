@@ -69,9 +69,9 @@ namespace FurCord.NET.Net
 					var length = Math.Min(OutgoingChunkSize, byteLength - start);
 
 					await _underlyingSocket
-						.SendAsync(new(bytes, start, length), WebSocketMessageType.Text, i == byteLength - 1, _cancellation)
+						.SendAsync(new(bytes, start, length), WebSocketMessageType.Text, i == chunks - 1, _cancellation)
 						.ConfigureAwait(false);
-					Console.WriteLine($"Sent chunk {i}/{chunks}, payload: {message} ({byteLength} bytes)");
+					Console.WriteLine($"Sent chunk {i + 1}/{chunks}, payload: {message} ({byteLength} bytes)");
 				}
 			}
 			catch (OperationCanceledException) { }
