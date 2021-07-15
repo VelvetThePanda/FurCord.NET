@@ -12,8 +12,19 @@ using FurCord.NET;
 
 namespace FurCord.NET.Net
 {
+	/// <summary>
+	/// A concrete implementation of <see cref="IWebSocketClient"/>.
+	/// </summary>
+	/// <inheritdoc cref="IWebSocketClient"/>
 	public sealed class WebSocketClient : IWebSocketClient
 	{
+		public bool IsConnected { get; private set; }
+		
+		// Headers to send with the request.
+		public ConcurrentDictionary<string, string> Headers { get; } = new();
+
+		public static IWebSocketClient CreateNew() => new WebSocketClient();
+		
 		//Max payload size is 4096 bytes.
 		private const int OutgoingChunkSize = 4096; // 4 KiB
 		//I don't know why we set it to 32KiB.
@@ -28,11 +39,8 @@ namespace FurCord.NET.Net
 		
 		// The actual socket that makes this work.
 		private readonly ClientWebSocket _webSocket = new();
-		
-		// Headers to send with the request.
-		public ConcurrentDictionary<string, string> Headers { get; } = new();
 
-		public static IWebSocketClient CreateNew() => new WebSocketClient();
+		private readonly TimeSpan ExecutionTimeout = TimeSpan.FromSeconds(3);
 		
 		/// <summary>
 		/// Connects to the specified uri, adding any headers if necessary.
@@ -53,19 +61,41 @@ namespace FurCord.NET.Net
 
 			_ = ReceiveLoopAsync().ConfigureAwait(false);
 		}
-
+		
+		/// <summary>
+		/// Constructs a new <see cref="WebSocketClient"/>.
+		/// </summary>
 		internal WebSocketClient()
 		{
 			_cancellation = _cts.Token;
-			_messageReceived = new("WS_MESSAGE_RX", TimeSpan.FromSeconds(1), EventErrorHandler);
-			_socketErrored = new("SOCKET_ERRORED", TimeSpan.FromSeconds(1), EventErrorHandler);
-		}
-
-		public async Task DisconnectAsync(int code = -1, string message = "")
-		{
-			_cts.Cancel();
+			_messageReceived = new("WS_MESSAGE_RX", ExecutionTimeout, EventErrorHandler);
+			_socketErrored = new("SOCKET_ERRORED", ExecutionTimeout, EventErrorHandler);
+			_socketClosed = new("SOCKET_CLOSED", ExecutionTimeout, EventErrorHandler);
 		}
 		
+		/// <summary>
+		/// Disconnects the client from the remote server.
+		/// </summary>
+		/// <param name="code">The remote server's response code.</param>
+		/// <param name="message">The remote server's response message.</param>
+		public async Task DisconnectAsync(int code = -1, string message = "")
+		{
+			await _sendingLock.WaitAsync().ConfigureAwait(false);
+			
+			if (_webSocket.State is WebSocketState.Open or WebSocketState.CloseReceived)
+				await _webSocket.CloseOutputAsync((WebSocketCloseStatus)code, message, CancellationToken.None).ConfigureAwait(false);
+			
+			_cts.Cancel();
+			_cts = new();
+			_cancellation = _cts.Token;
+			
+			if (IsConnected)
+			{
+				IsConnected = false;
+				await _socketClosed.InvokeAsync(this, new() {CloseCode = code, CloseMessage = message}).ConfigureAwait(false);
+			}
+			_sendingLock.Release();
+		}
 		
 		public async Task SendMessageAsync(string message)
 		{
@@ -173,7 +203,7 @@ namespace FurCord.NET.Net
 			AsyncEventHandler<WebSocketClient, TArgs> handler, WebSocketClient sender, TArgs eventArgs)
 			where TArgs : AsyncEventArgs
 		{
-			
+			//TODO: Log
 		}
 	}
 }

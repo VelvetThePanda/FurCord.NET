@@ -9,6 +9,11 @@ namespace FurCord.NET.Net
 	
 	public interface IWebSocketClient
 	{
+		/// <summary>
+		/// Gets whether this client has an open connection to the remote server.
+		/// </summary>
+		public bool IsConnected { get; }
+		
 		public ConcurrentDictionary<string, string> Headers { get; }
 		
 		/// <summary>
@@ -29,11 +34,20 @@ namespace FurCord.NET.Net
 		/// </summary>
 		/// <param name="message">The message to send.</param>
 		public Task SendMessageAsync(string message);
-
+		
+		/// <summary>
+		/// An event that fires when a message is received from the remote server.
+		/// </summary>
 		public event AsyncEventHandler<IWebSocketClient, SocketMessageEventArgs> MessageReceived;
 
+		/// <summary>
+		/// An event that fires when the websocket supresses an exception.
+		/// </summary>
 		public event AsyncEventHandler<IWebSocketClient, SocketErroredEventArgs> SocketErorred;
 
+		/// <summary>
+		/// An event that fires when the socket connection is closed. 
+		/// </summary>
 		public event AsyncEventHandler<IWebSocketClient, SocketClosedEventArgs> SocketClosed;
 		
 	}
