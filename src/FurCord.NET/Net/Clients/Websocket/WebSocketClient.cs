@@ -55,7 +55,7 @@ namespace FurCord.NET.Net
 				_webSocket.Options.SetRequestHeader(name, value);
 			
 			await _webSocket.ConnectAsync(uri, _cancellation).ConfigureAwait(false);
-
+			IsConnected = true;
 			_ = ReceiveLoopAsync().ConfigureAwait(false);
 		}
 		

@@ -17,8 +17,6 @@ namespace FurCord.NET.Testing
 
 			await client.ConnectAsync();
 
-
-			
 			await Task.Delay(-1);
 		}
 	}

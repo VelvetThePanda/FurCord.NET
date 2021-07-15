@@ -17,7 +17,29 @@ namespace FurCord.NET.Net
 
 		private int _skippedHeartbeats;
 
-			
+		private async Task HeartbeatLoopAsync()
+		{
+			while (!_cancellation.IsCancellationRequested)
+			{
+				try
+				{
+					_skippedHeartbeats++;
+
+					State = _skippedHeartbeats > 5 ? ClientState.Zombied : State;
+					
+					var heartbeat = new GatewayPayload
+					{
+						OpCode = GatewayOpCode.Heartbeat,
+						Data = _lastSequence
+					};
+					_lastHeartbeat = DateTime.Now;
+					await _socketClient.SendMessageAsync(JsonConvert.SerializeObject(heartbeat));
+					await Task.Delay(_heartbeatInterval, _cancellation);
+				}
+				catch (TaskCanceledException) { }
+			}
+		}
+		
 		private async Task HandleDispatch(IWebSocketClient client, SocketMessageEventArgs args)
 		{
 			var payload = JsonConvert.DeserializeObject<GatewayPayload>(args.Message)!;
@@ -27,11 +49,15 @@ namespace FurCord.NET.Net
 				GatewayOpCode.Dispatch => Task.CompletedTask,
 				GatewayOpCode.Reconnect => throw new NotSupportedException(),
 				GatewayOpCode.Hello => OnHelloAsync((payload.Data as JObject)!.ToObject<HelloPayload>()!),
-				GatewayOpCode.HeartbeatAck => AckHeartBeatAsync()
+				GatewayOpCode.HeartbeatAck => AckHeartBeatAsync(),
 			};
 			_lastSequence = payload.Sequence ?? _lastSequence;
 			await dispatchTask;
 		}
+		
+		/// <summary>
+		/// Acknowledges 
+		/// </summary>
 		private async Task AckHeartBeatAsync()
 		{
 			_skippedHeartbeats--;
@@ -51,7 +77,10 @@ namespace FurCord.NET.Net
 				await IdentifyAsync().ConfigureAwait(false);
 			else await ResumeAsync().ConfigureAwait(false);
 		}
-
+		
+		/// <summary>
+		/// Attempts to resume an existing session.
+		/// </summary>
 		private async Task ResumeAsync()
 		{
 			var gatewayResumePayload = new GatewayPayload<ResumePayload>
@@ -65,33 +94,13 @@ namespace FurCord.NET.Net
 				}
 			};
 
-			await SocketClient.SendMessageAsync(JsonConvert.SerializeObject(gatewayResumePayload));
+			await _socketClient.SendMessageAsync(JsonConvert.SerializeObject(gatewayResumePayload));
+			Console.WriteLine("Resumed Session.");
 		}
 		
-		
-		private async Task HeartbeatLoopAsync()
-		{
-			while (!_cancellation.IsCancellationRequested)
-			{
-				try
-				{
-					_skippedHeartbeats++;
-
-					State = _skippedHeartbeats > 5 ? ClientState.Zombied : State;
-					
-					var heartbeat = new GatewayPayload
-					{
-						OpCode = GatewayOpCode.Heartbeat,
-						Data = _lastSequence
-					};
-
-					await SocketClient.SendMessageAsync(JsonConvert.SerializeObject(heartbeat));
-					await Task.Delay(_heartbeatInterval, _cancellation);
-				}
-				catch (TaskCanceledException) { }
-			}
-		}
-
+		/// <summary>
+		/// Identifies with the gateway to create a new session.
+		/// </summary>
 		private async Task IdentifyAsync()
 		{
 			var payload = new GatewayPayload<IdentifyPayload>
@@ -105,7 +114,7 @@ namespace FurCord.NET.Net
 				}
 			};
 
-			await SocketClient.SendMessageAsync(JsonConvert.SerializeObject(payload));
+			await _socketClient.SendMessageAsync(JsonConvert.SerializeObject(payload));
 		}
 	}
 }
