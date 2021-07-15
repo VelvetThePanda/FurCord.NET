@@ -9,9 +9,9 @@ namespace FurCord.NET.Net
 {
 	public sealed partial class DiscordClient : IDiscordClient
 	{
-		public int Ping { get; }
-		public ClientState State { get; } = ClientState.Disconnected;
-		public IUser CurrentUser { get; }
+		public int Ping { get; private set; }
+		public ClientState State { get; private set; } = ClientState.Disconnected;
+		public IUser CurrentUser { get; private set; }
 
 		private bool _started;
 		

@@ -13,6 +13,8 @@ namespace FurCord.NET.Net
 		private string _sessionId;
 		private int _heartbeatInterval;
 
+		private DateTime _lastHeartbeat;
+
 		private int _skippedHeartbeats;
 
 			
@@ -24,12 +26,18 @@ namespace FurCord.NET.Net
 			{
 				GatewayOpCode.Dispatch => Task.CompletedTask,
 				GatewayOpCode.Reconnect => throw new NotSupportedException(),
-				GatewayOpCode.Hello => OnHelloAsync((payload.Data as JObject)!.ToObject<HelloPayload>()!)
+				GatewayOpCode.Hello => OnHelloAsync((payload.Data as JObject)!.ToObject<HelloPayload>()!),
+				GatewayOpCode.HeartbeatAck => AckHeartBeatAsync()
 			};
 			_lastSequence = payload.Sequence ?? _lastSequence;
 			await dispatchTask;
 		}
-		
+		private async Task AckHeartBeatAsync()
+		{
+			_skippedHeartbeats--;
+			Ping = (int)(DateTime.Now - _lastHeartbeat).TotalMilliseconds;
+		}
+
 		/// <summary>
 		/// Response to OP10 (HELLO) by heartbeating and identifying if necessary.
 		/// </summary>
@@ -68,6 +76,8 @@ namespace FurCord.NET.Net
 				try
 				{
 					_skippedHeartbeats++;
+
+					State = _skippedHeartbeats > 5 ? ClientState.Zombied : State;
 					
 					var heartbeat = new GatewayPayload
 					{
