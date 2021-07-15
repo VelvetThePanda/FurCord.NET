@@ -13,6 +13,8 @@ namespace FurCord.NET.Net
 		private string _sessionId;
 		private int _heartbeatInterval;
 
+		private int _skippedHeartbeats;
+
 			
 		private async Task HandleDispatch(IWebSocketClient client, SocketMessageEventArgs args)
 		{
@@ -50,6 +52,8 @@ namespace FurCord.NET.Net
 			{
 				try
 				{
+					_skippedHeartbeats++;
+					
 					var heartbeat = new GatewayPayload
 					{
 						OpCode = GatewayOpCode.Heartbeat,
@@ -57,7 +61,6 @@ namespace FurCord.NET.Net
 					};
 
 					await SocketClient.SendMessageAsync(JsonConvert.SerializeObject(heartbeat));
-					Console.WriteLine("Heartbeated!");
 					await Task.Delay(_heartbeatInterval, _cancellation);
 				}
 				catch (TaskCanceledException) { }
@@ -78,7 +81,6 @@ namespace FurCord.NET.Net
 			};
 
 			await SocketClient.SendMessageAsync(JsonConvert.SerializeObject(payload));
-			Console.WriteLine("Identified!");
 		}
 	}
 }

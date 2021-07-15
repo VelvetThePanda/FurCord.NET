@@ -96,11 +96,8 @@ namespace FurCord.NET.Net
 						
 						if (result.MessageType is WebSocketMessageType.Close)
 							break;
-						Console.WriteLine("Got message");
 					} while (!result.EndOfMessage);
 					
-					Console.WriteLine($"Message received: {Encoding.UTF8.GetString(buffer[..result.Count])}");
-
 					switch (result.MessageType)
 					{
 						case WebSocketMessageType.Text:
