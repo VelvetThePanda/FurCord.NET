@@ -12,7 +12,7 @@ namespace FurCord.NET.Testing
 		{
 
 			var container = new ServiceCollection();
-			container.AddClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.AllUnprivileged});
+			container.AddFurCordClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.AllUnprivileged});
 			var client = container.BuildServiceProvider().GetRequiredService<IDiscordClient>();
 			
 			await client.ConnectAsync();
