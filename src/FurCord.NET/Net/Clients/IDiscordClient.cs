@@ -7,8 +7,10 @@ namespace FurCord.NET.Net
 	public interface IDiscordClient
 	{
 		public int Ping { get; }
-		
+
 		public ClientState State { get; }
+		
+		internal DiscordConfiguration Configuration { get; }
 		
 		public IUser CurrentUser { get; }
 		

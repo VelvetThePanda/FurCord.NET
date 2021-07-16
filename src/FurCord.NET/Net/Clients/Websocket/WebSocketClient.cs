@@ -157,6 +157,7 @@ namespace FurCord.NET.Net
 						case WebSocketMessageType.Close:
 							//This *shouldn't* break(?). If it does go yell at stehpentoub. //
 							// This is going based off this comment https://github.com/dotnet/runtime/issues/25093#issuecomment-366827102 //
+							IsConnected = false;
 							await _webSocket.CloseOutputAsync(_webSocket.CloseStatus.Value, _webSocket.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
 							await _socketClosed.InvokeAsync(this, new() {CloseCode = (int) _webSocket.CloseStatus, CloseMessage = _webSocket.CloseStatusDescription!});
 							break;

@@ -61,7 +61,7 @@ namespace FurCord.NET
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
 			};
 
-			_logger = config.LoggerFactory.CreateLogger<RestClient>();
+			_logger = config.LoggerInstanceFactory.CreateLogger<RestClient>();
 			_client = new(handler) {BaseAddress = new(BaseUrl)};
 
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "Bot " + config.Token);

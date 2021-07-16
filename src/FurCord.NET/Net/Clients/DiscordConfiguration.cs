@@ -1,6 +1,8 @@
 using System;
 using FurCord.NET.Net.Enums;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Options;
 
 namespace FurCord.NET.Net
 {
@@ -12,7 +14,7 @@ namespace FurCord.NET.Net
 		public string Token { internal get; set; }
 		public TokenType TokenType { internal get; set; }
 
-		public ILoggerFactory LoggerFactory { internal get; set; } = new LoggerFactory();
+		public ILoggerFactory? LoggerInstanceFactory { internal get; set; }
 
 		public GatewayIntents Intents { internal get; set; } = GatewayIntents.AllUnprivileged;
 		
@@ -29,7 +31,20 @@ namespace FurCord.NET.Net
 			internal get => _restClientFactory;
 			set => _restClientFactory = value ?? throw new InvalidOperationException("Delegate must be non-null.");
 		}
-		
+
 		private RestClientFactoryDelegate _restClientFactory = RestClient.CreateNew;
+		
+		public LogLevel MinimumLogLevel { get; set; }
+		public string LogTimestampFormat { get; set; }
+
+		public DiscordConfiguration()
+		{
+			LoggerInstanceFactory = LoggerFactory.Create(log => log
+				.AddSimpleConsole(sc =>
+				{
+					sc.SingleLine = false;
+					sc.TimestampFormat = LogTimestampFormat!;
+				}));
+		}
 	}
 }

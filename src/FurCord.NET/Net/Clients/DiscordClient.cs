@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FurCord.NET.Entities;
 using FurCord.NET.Net.Enums;
 using FurCord.NET.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace FurCord.NET.Net
 {
@@ -13,6 +14,9 @@ namespace FurCord.NET.Net
 	{
 		public int Ping { get; private set; }
 		public ClientState State { get; private set; } = ClientState.Disconnected;
+
+		DiscordConfiguration IDiscordClient.Configuration => _configuration;
+
 		public IUser CurrentUser { get; private set; }
 
 		public IReadOnlyDictionary<ulong, IGuild> Guilds => _guilds;
@@ -21,6 +25,8 @@ namespace FurCord.NET.Net
 		
 		private bool _running;
 		private bool _disconnecting;
+
+		private readonly ILogger<IDiscordClient> _logger;
 		
 		private readonly string _token;
 		private readonly GatewayIntents _intents;
@@ -31,10 +37,15 @@ namespace FurCord.NET.Net
 
 		private readonly IRestClient _rest;
 		public readonly IWebSocketClient _socketClient;
+		private DiscordConfiguration _configuration;
 
-		
+
 		public DiscordClient(DiscordConfiguration config)
 		{
+			_configuration = config;
+
+			_logger = config.LoggerInstanceFactory.CreateLogger<IDiscordClient>();
+			
 			_token = Utils.Utils.GetFormattedToken(config.TokenType, config.Token);
 			_intents = config.Intents;
 			

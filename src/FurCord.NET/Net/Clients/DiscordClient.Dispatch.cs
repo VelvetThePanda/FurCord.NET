@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FurCord.NET.Entities;
 using FurCord.NET.Net.Enums;
 using FurCord.NET.Utils;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -48,7 +49,7 @@ namespace FurCord.NET.Net
 
 		private async Task HandleDispatchAsync(IWebSocketClient client, SocketMessageEventArgs args)
 		{
-			Console.WriteLine($"Payload: {args.Message}");
+			_logger.LogTrace($"Payload: {args.Message}");
 			var payload = JsonConvert.DeserializeObject<GatewayPayload>(args.Message)!;
 			
 			_lastSequence ??= payload.Sequence ?? _lastSequence;
