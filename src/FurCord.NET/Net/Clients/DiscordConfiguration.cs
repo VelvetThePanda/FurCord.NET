@@ -33,18 +33,24 @@ namespace FurCord.NET.Net
 		}
 
 		private RestClientFactoryDelegate _restClientFactory = RestClient.CreateNew;
-		
-		public LogLevel MinimumLogLevel { get; set; }
-		public string LogTimestampFormat { get; set; }
 
-		public DiscordConfiguration()
+		public LogLevel MinimumLogLevel { get; } = LogLevel.Trace;
+		public string LogTimestampFormat { get; } = "yy-MM-dd hh:mm ss";
+		public DiscordConfiguration(string token, TokenType tokenType = TokenType.Bot, ILoggerFactory? loggerInstanceFactory = null, 
+			GatewayIntents intents = default, LogLevel minimumLogLevel = LogLevel.Information, 
+			string logTimestampFormat = "yy-MM-dd hh:mm ss", RestClientFactoryDelegate? restClientFactory = null, WebSocketClientFactoryDelegate? socketClientFactory = null)
 		{
-			LoggerInstanceFactory = LoggerFactory.Create(log => log
-				.AddSimpleConsole(sc =>
-				{
-					sc.SingleLine = false;
-					sc.TimestampFormat = LogTimestampFormat!;
-				}));
+			Token = token;
+			TokenType = tokenType;
+			
+			LoggerInstanceFactory = loggerInstanceFactory ?? new LoggerFactory(new ILoggerProvider[]{ new BaseLoggerProvider()});
+			
+			Intents = intents;
+			MinimumLogLevel = minimumLogLevel;
+			LogTimestampFormat = logTimestampFormat;
+			
+			_socketClientFactory = socketClientFactory ?? WebSocketClient.CreateNew;
+			_restClientFactory = restClientFactory ?? RestClient.CreateNew;
 		}
 	}
 }

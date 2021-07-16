@@ -9,9 +9,8 @@ namespace FurCord.NET.Testing
 	{
 		public static async Task Main(string[] args)
 		{
-			var client = new DiscordClient(new()
+			var client = new DiscordClient(new(File.ReadAllText("./token.txt"))
 			{
-				Token = File.ReadAllText("./token.txt"),
 				Intents = GatewayIntents.AllUnprivileged
 			});
 

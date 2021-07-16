@@ -49,7 +49,7 @@ namespace FurCord.NET.Net
 
 		private async Task HandleDispatchAsync(IWebSocketClient client, SocketMessageEventArgs args)
 		{
-			_logger.LogTrace($"Payload: {args.Message}");
+			_logger.LogInformation($"Payload: {args.Message}");
 			var payload = JsonConvert.DeserializeObject<GatewayPayload>(args.Message)!;
 			
 			_lastSequence ??= payload.Sequence ?? _lastSequence;
