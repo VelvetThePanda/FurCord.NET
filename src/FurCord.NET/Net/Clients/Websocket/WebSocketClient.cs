@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Emzi0767.Utilities;
+using Microsoft.Toolkit.HighPerformance.Buffers;
+using Newtonsoft.Json;
 
 namespace FurCord.NET.Net
 {
@@ -125,10 +127,7 @@ namespace FurCord.NET.Net
 		
 		internal async Task ReceiveLoopAsync()
 		{
-			await using var bs = new MemoryStream();
-			var pool = ArrayPool<byte>.Create();
-			var buffer = pool.Rent(IncomingChunkSize);
-
+			using var buffer = new ArrayPoolBufferWriter<byte>();
 			try
 			{
 				while (!_cancellation.IsCancellationRequested)
@@ -136,34 +135,28 @@ namespace FurCord.NET.Net
 					// See https://github.com/RogueException/Discord.Net/commit/ac389f5f6823e3a720aedd81b7805adbdd78b66d 
 					// for explanation on the cancellation token
 
-					WebSocketReceiveResult result;
+					ValueWebSocketReceiveResult result;
 					do
 					{
-						result = await _webSocket.ReceiveAsync(buffer, CancellationToken.None).ConfigureAwait(false);
+						var mem = buffer.GetMemory(IncomingChunkSize);
+						result = await _webSocket.ReceiveAsync(mem, CancellationToken.None).ConfigureAwait(false);
 
 						if (result.MessageType is WebSocketMessageType.Close)
 							break;
-
-						await bs.WriteAsync(buffer, 0, result.Count, CancellationToken.None).ConfigureAwait(false);
+						buffer.Advance(result.Count);
 					}
 					while (!result.EndOfMessage);
 
-					var streamLength = (int) bs.Length;
-					var sBuffer = ArrayPool<byte>.Shared.Rent(streamLength);
-					bs.Position = 0;
-					await bs.ReadAsync(sBuffer, 0, streamLength, CancellationToken.None).ConfigureAwait(false);
-					
 					switch (result.MessageType)
 					{
 						case WebSocketMessageType.Text:
-							await _messageReceived.InvokeAsync(this, new(sBuffer[..streamLength]));
-							ArrayPool<byte>.Shared.Return(sBuffer, true);
-							bs.SetLength(0);
+							await _messageReceived.InvokeAsync(this, new(buffer.WrittenSpan));
+							buffer.Clear();
 							break;
 
 						case WebSocketMessageType.Close:
-							await _webSocket.CloseOutputAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
-							await _socketClosed.InvokeAsync(this, new() {CloseCode = (int) result.CloseStatus, CloseMessage = result.CloseStatusDescription!});
+							await _webSocket.CloseOutputAsync(_webSocket.CloseStatus.Value, _webSocket.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
+							await _socketClosed.InvokeAsync(this, new() {CloseCode = (int) _webSocket.CloseStatus, CloseMessage = _webSocket.CloseStatusDescription!});
 							break;
 
 						case WebSocketMessageType.Binary:

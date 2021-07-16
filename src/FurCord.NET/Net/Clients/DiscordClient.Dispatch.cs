@@ -96,7 +96,7 @@ namespace FurCord.NET.Net
 				OpCode = GatewayOpCode.Resume,
 				Data = new()
 				{
-					Token = StringUtils.GetFormattedToken(TokenType.Bot, _token),
+					Token = Utils.Utils.GetFormattedToken(TokenType.Bot, _token),
 					Sequence = _lastSequence ?? 0,
 					Session = _sessionId
 				}

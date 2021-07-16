@@ -35,7 +35,7 @@ namespace FurCord.NET.Net
 		
 		public DiscordClient(DiscordConfiguration config)
 		{
-			_token = StringUtils.GetFormattedToken(config.TokenType, config.Token);
+			_token = Utils.Utils.GetFormattedToken(config.TokenType, config.Token);
 			_intents = config.Intents;
 			
 			_socketClient = config.WebSocketClientFactory();

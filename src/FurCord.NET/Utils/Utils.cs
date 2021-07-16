@@ -1,9 +1,10 @@
 using System.Text;
 using FurCord.NET.Net.Enums;
+using Newtonsoft.Json;
 
 namespace FurCord.NET.Utils
 {
-	internal static class StringUtils
+	internal static class Utils
 	{
 		/// <summary>
 		/// Gets a formatted token for authenticating with Discord.
@@ -20,5 +21,7 @@ namespace FurCord.NET.Utils
 			};
 
 		public static UTF8Encoding UTF8 { get; } = new(false);
+
+		public static JsonSerializer Serializer { get; } = new();
 	}
 }

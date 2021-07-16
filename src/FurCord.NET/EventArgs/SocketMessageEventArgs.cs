@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Text;
 using Emzi0767.Utilities;
 using FurCord.NET.Utils;
@@ -18,6 +20,6 @@ namespace FurCord.NET
 		/// Constructs a new <see cref="SocketMessageEventArgs"/> by converting the received bytes into a readable string.
 		/// </summary>
 		/// <param name="message"></param>
-		internal SocketMessageEventArgs(byte[] message) => Message = StringUtils.UTF8.GetString(message);
+		internal SocketMessageEventArgs(ReadOnlySpan<byte> message) => Message = Utils.Utils.UTF8.GetString(message);
 	}
 }
