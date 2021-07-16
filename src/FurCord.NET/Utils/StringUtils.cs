@@ -1,3 +1,4 @@
+using System.Text;
 using FurCord.NET.Net.Enums;
 
 namespace FurCord.NET.Utils
@@ -17,5 +18,7 @@ namespace FurCord.NET.Utils
 				TokenType.Bearer => $"Bearer {token}",
 				TokenType.User => token
 			};
+
+		public static UTF8Encoding UTF8 { get; } = new(false);
 	}
 }

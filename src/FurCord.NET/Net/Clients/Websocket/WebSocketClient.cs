@@ -125,13 +125,17 @@ namespace FurCord.NET.Net
 		
 		internal async Task ReceiveLoopAsync()
 		{
-			byte[] buffer = ArrayPool<byte>.Shared.Rent(IncomingChunkSize);
-			await using var stream = new MemoryStream();
+			await using var bs = new MemoryStream();
+			var pool = ArrayPool<byte>.Create();
+			var buffer = pool.Rent(IncomingChunkSize);
 
 			try
 			{
-				do
+				while (!_cancellation.IsCancellationRequested)
 				{
+					// See https://github.com/RogueException/Discord.Net/commit/ac389f5f6823e3a720aedd81b7805adbdd78b66d 
+					// for explanation on the cancellation token
+
 					WebSocketReceiveResult result;
 					do
 					{
@@ -139,18 +143,22 @@ namespace FurCord.NET.Net
 
 						if (result.MessageType is WebSocketMessageType.Close)
 							break;
-						
-						await stream.WriteAsync(buffer, 0, result.Count, _cancellation);
-					} while (!result.EndOfMessage);
 
-					stream.Position = 0;
-					await stream.ReadAsync(buffer, _cancellation);
-					stream.SetLength(0);
+						await bs.WriteAsync(buffer, 0, result.Count, CancellationToken.None).ConfigureAwait(false);
+					}
+					while (!result.EndOfMessage);
+
+					var streamLength = (int) bs.Length;
+					var sBuffer = ArrayPool<byte>.Shared.Rent(streamLength);
+					bs.Position = 0;
+					await bs.ReadAsync(sBuffer, 0, streamLength, CancellationToken.None).ConfigureAwait(false);
 					
 					switch (result.MessageType)
 					{
 						case WebSocketMessageType.Text:
-							await _messageReceived.InvokeAsync(this, new(buffer[..result.Count]));
+							await _messageReceived.InvokeAsync(this, new(sBuffer[..streamLength]));
+							ArrayPool<byte>.Shared.Return(sBuffer, true);
+							bs.SetLength(0);
 							break;
 
 						case WebSocketMessageType.Close:
@@ -163,8 +171,7 @@ namespace FurCord.NET.Net
 						default:
 							throw new ArgumentOutOfRangeException();
 					}
-
-				} while (!_cancellation.IsCancellationRequested);
+				}
 			}
 			catch (Exception exception)
 			{
@@ -172,7 +179,7 @@ namespace FurCord.NET.Net
 			}
 			finally
 			{
-				ArrayPool<byte>.Shared.Return(buffer, true);
+				//ArrayPool<byte>.Shared.Return(buffer, true);
 			}
 			
 		}
