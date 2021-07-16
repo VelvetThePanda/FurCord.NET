@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -35,7 +36,7 @@ namespace FurCord.NET.Net
 		private CancellationToken _cancellation;
 		
 		// The actual socket that makes this work.
-		private readonly ClientWebSocket _webSocket = new();
+		private ClientWebSocket _webSocket = new();
 
 		private readonly TimeSpan ExecutionTimeout = TimeSpan.FromSeconds(3);
 		
@@ -45,16 +46,13 @@ namespace FurCord.NET.Net
 		/// <param name="uri"></param>
 		public async Task ConnectAsync(Uri uri)
 		{
-			try { await DisconnectAsync().ConfigureAwait(false); }
-			catch { }
-
-			_cts = new();
-			_cancellation = _cts.Token;
+			if (IsConnected)
+				await DisconnectAsync().ConfigureAwait(false);
 			
 			foreach ((var name, var value) in Headers)
 				_webSocket.Options.SetRequestHeader(name, value);
 			
-			await _webSocket.ConnectAsync(uri, _cancellation).ConfigureAwait(false);
+			await _webSocket.ConnectAsync(uri, CancellationToken.None).ConfigureAwait(false);
 			IsConnected = true;
 			_ = ReceiveLoopAsync().ConfigureAwait(false);
 		}
@@ -78,10 +76,10 @@ namespace FurCord.NET.Net
 		public async Task DisconnectAsync(int code = -1, string message = "")
 		{
 			await _sendingLock.WaitAsync().ConfigureAwait(false);
-			
-			if (_webSocket.State is WebSocketState.Open or WebSocketState.CloseReceived)
-				await _webSocket.CloseOutputAsync((WebSocketCloseStatus)code, message, CancellationToken.None).ConfigureAwait(false);
-			
+
+			if (_webSocket.State is WebSocketState.Open or WebSocketState.CloseReceived) 
+				await _webSocket.CloseAsync((WebSocketCloseStatus) code, message, CancellationToken.None).ConfigureAwait(false);
+
 			_cts.Cancel();
 			_cts = new();
 			_cancellation = _cts.Token;
@@ -89,6 +87,7 @@ namespace FurCord.NET.Net
 			if (IsConnected)
 			{
 				IsConnected = false;
+				_webSocket = new();
 				await _socketClosed.InvokeAsync(this, new() {CloseCode = code, CloseMessage = message}).ConfigureAwait(false);
 			}
 			_sendingLock.Release();
@@ -100,7 +99,7 @@ namespace FurCord.NET.Net
 				return;
 			try
 			{
-				await _sendingLock.WaitAsync(_cancellation).ConfigureAwait(false);
+				await _sendingLock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
 
 				var bytes = Encoding.UTF8.GetBytes(message);
 				var byteLength = bytes.Length;
@@ -127,6 +126,7 @@ namespace FurCord.NET.Net
 		internal async Task ReceiveLoopAsync()
 		{
 			byte[] buffer = ArrayPool<byte>.Shared.Rent(IncomingChunkSize);
+			await using var stream = new MemoryStream();
 
 			try
 			{
@@ -139,8 +139,14 @@ namespace FurCord.NET.Net
 
 						if (result.MessageType is WebSocketMessageType.Close)
 							break;
+						
+						await stream.WriteAsync(buffer, 0, result.Count, _cancellation);
 					} while (!result.EndOfMessage);
 
+					stream.Position = 0;
+					await stream.ReadAsync(buffer, _cancellation);
+					stream.SetLength(0);
+					
 					switch (result.MessageType)
 					{
 						case WebSocketMessageType.Text:
@@ -200,6 +206,8 @@ namespace FurCord.NET.Net
 			AsyncEventHandler<WebSocketClient, TArgs> handler, WebSocketClient sender, TArgs eventArgs)
 			where TArgs : AsyncEventArgs
 		{
+			
+			Console.WriteLine($"An exception was thrown from the invocation of an asyncrhonous event handler. {ex}");
 			//TODO: Log
 		}
 	}

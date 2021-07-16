@@ -1,5 +1,9 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using FurCord.NET.Entities;
 using FurCord.NET.Net.Enums;
 using FurCord.NET.Utils;
 using Newtonsoft.Json;
@@ -9,7 +13,7 @@ namespace FurCord.NET.Net
 {
 	public partial class DiscordClient
 	{
-		private long _lastSequence;
+		private long? _lastSequence;
 		private string _sessionId;
 		private int _heartbeatInterval;
 
@@ -39,22 +43,26 @@ namespace FurCord.NET.Net
 				catch (TaskCanceledException) { }
 			}
 		}
-		
-		private async Task HandleDispatch(IWebSocketClient client, SocketMessageEventArgs args)
-		{
-			var payload = JsonConvert.DeserializeObject<GatewayPayload>(args.Message)!;
 
+		#region Gateway Dispatch
+
+		private async Task HandleDispatchAsync(IWebSocketClient client, SocketMessageEventArgs args)
+		{
+			Console.WriteLine($"Payload: {args.Message}");
+			var payload = JsonConvert.DeserializeObject<GatewayPayload>(args.Message)!;
+			
+			_lastSequence ??= payload.Sequence ?? _lastSequence;
 			var dispatchTask = payload.OpCode switch
 			{
-				GatewayOpCode.Dispatch => Task.CompletedTask,
+				GatewayOpCode.Dispatch => HandleGatewayDispatchAsync(payload),
 				GatewayOpCode.Reconnect => throw new NotSupportedException(),
 				GatewayOpCode.Hello => OnHelloAsync((payload.Data as JObject)!.ToObject<HelloPayload>()!),
 				GatewayOpCode.HeartbeatAck => AckHeartBeatAsync(),
+				_ => throw new NotSupportedException($"Unknown dispatch: {payload.EventName} | {payload.Data}")
 			};
-			_lastSequence = payload.Sequence ?? _lastSequence;
 			await dispatchTask;
 		}
-		
+
 		/// <summary>
 		/// Acknowledges 
 		/// </summary>
@@ -89,7 +97,7 @@ namespace FurCord.NET.Net
 				Data = new()
 				{
 					Token = StringUtils.GetFormattedToken(TokenType.Bot, _token),
-					Sequence = _lastSequence,
+					Sequence = _lastSequence ?? 0,
 					Session = _sessionId
 				}
 			};
@@ -115,6 +123,30 @@ namespace FurCord.NET.Net
 			};
 
 			await _socketClient.SendMessageAsync(JsonConvert.SerializeObject(payload));
+		}
+		
+		#endregion
+		
+		private async Task HandleGatewayDispatchAsync(GatewayPayload payload)
+		{
+			if (payload.Data is not JObject job)
+			{
+				//_logger.LogDebug("Payload data was not of expected type. This is probably safe to ignore.");
+				return;
+			}
+
+			switch (payload.EventName)
+			{
+				case "READY":
+					_sessionId = job["session_id"]!.ToString();
+					var guilds = job["guilds"]!.ToObject<IEnumerable<Guild>>()!;
+
+					foreach (var g in guilds)
+						_guilds[g.Id] = g;
+					Console.WriteLine($"Added {guilds.Count()} guilds.");
+					break;
+			}
+			
 		}
 	}
 }

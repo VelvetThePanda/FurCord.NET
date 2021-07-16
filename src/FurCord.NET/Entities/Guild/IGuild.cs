@@ -9,6 +9,9 @@ namespace FurCord.NET.Entities
 		[JsonProperty("name")]
 		public string Name { get; }
 		
+		[JsonProperty("unavailable")]
+		public bool Unavailable { get; }
+		
 		[JsonIgnore]
 		public string IconUrl { get; }
 		

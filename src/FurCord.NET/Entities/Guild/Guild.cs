@@ -17,6 +17,8 @@ namespace FurCord.NET.Entities
 		IDiscordClient ISnowflake.Client { get; set; }
 
 		public string Name { get; internal set; }
+		
+		public bool Unavailable { get; }
 
 		public string IconUrl => CDN.GuildIcon(Id, IconHash);
 

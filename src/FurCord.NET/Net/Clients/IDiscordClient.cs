@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FurCord.NET.Entities;
 
@@ -10,6 +11,8 @@ namespace FurCord.NET.Net
 		public ClientState State { get; }
 		
 		public IUser CurrentUser { get; }
+		
+		public IReadOnlyDictionary<ulong, IGuild> Guilds { get; }
 		
 		public Task ConnectAsync();
 		public Task DisconnectAsync();

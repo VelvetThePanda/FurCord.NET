@@ -17,6 +17,10 @@ namespace FurCord.NET.Testing
 
 			await client.ConnectAsync();
 
+			await Task.Delay(2000);
+
+			await client._socketClient.DisconnectAsync();
+
 			await Task.Delay(-1);
 		}
 	}

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FurCord.NET.Entities;
@@ -13,6 +15,10 @@ namespace FurCord.NET.Net
 		public ClientState State { get; private set; } = ClientState.Disconnected;
 		public IUser CurrentUser { get; private set; }
 
+		public IReadOnlyDictionary<ulong, IGuild> Guilds => _guilds;
+
+		private readonly ConcurrentDictionary<ulong, IGuild> _guilds = new();
+		
 		private bool _running;
 		private bool _disconnecting;
 		
@@ -24,7 +30,7 @@ namespace FurCord.NET.Net
 		private CancellationToken _cancellation;
 
 		private readonly IRestClient _rest;
-		private readonly IWebSocketClient _socketClient;
+		public readonly IWebSocketClient _socketClient;
 
 		
 		public DiscordClient(DiscordConfiguration config)
@@ -37,7 +43,7 @@ namespace FurCord.NET.Net
 			
 			_socketClient.Headers.TryAdd("Authorization", $"Bot {_token}");
 
-			_socketClient.MessageReceived += HandleDispatch;
+			_socketClient.MessageReceived += HandleDispatchAsync;
 			_socketClient.SocketClosed += SocketClosed;
 
 			_cts = new();
