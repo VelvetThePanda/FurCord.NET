@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FurCord.NET.Net
 {
-	public sealed partial class DiscordClient : IDiscordClient
+	internal sealed partial class DiscordClient : IDiscordClient
 	{
 		public int Ping { get; private set; }
 		public ClientState State { get; private set; } = ClientState.Disconnected;
@@ -37,10 +37,10 @@ namespace FurCord.NET.Net
 
 		private readonly IRestClient _rest;
 		public readonly IWebSocketClient _socketClient;
-		private DiscordConfiguration _configuration;
+		private readonly DiscordConfiguration _configuration;
 
 
-		public DiscordClient(DiscordConfiguration config)
+		public DiscordClient(DiscordConfiguration config, IWebSocketClient socket, IRestClient rest)
 		{
 			_configuration = config;
 
@@ -49,8 +49,8 @@ namespace FurCord.NET.Net
 			_token = Utils.Utils.GetFormattedToken(config.TokenType, config.Token);
 			_intents = config.Intents;
 			
-			_socketClient = config.WebSocketClientFactory();
-			_rest = config.RestClientFactory(config);
+			_rest = rest;
+			_socketClient = socket;
 			
 			_socketClient.Headers.TryAdd("Authorization", $"Bot {_token}");
 
@@ -91,11 +91,12 @@ namespace FurCord.NET.Net
 			
 			_running = false;
 			
-			Console.WriteLine("Socket closed. Reconnecting.");
+			_logger.LogError("Socket closed. Reconnecting.");
 			_cts.Cancel();
 			
 			_cts = new();
 			_cancellation = _cts.Token;
+			await Task.Delay(5000);
 			await ConnectAsync().ConfigureAwait(false);
 		}
 		

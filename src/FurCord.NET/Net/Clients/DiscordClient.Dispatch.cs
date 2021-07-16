@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FurCord.NET.Net
 {
-	public partial class DiscordClient
+	internal partial class DiscordClient
 	{
 		private long? _lastSequence;
 		private string _sessionId;

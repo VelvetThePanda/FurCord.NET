@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using FurCord.NET.Net;
 using FurCord.NET.Net.Enums;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FurCord.NET.Testing
 {
@@ -9,11 +10,11 @@ namespace FurCord.NET.Testing
 	{
 		public static async Task Main(string[] args)
 		{
-			var client = new DiscordClient(new(File.ReadAllText("./token.txt"))
-			{
-				Intents = GatewayIntents.AllUnprivileged,
-			});
 
+			var container = new ServiceCollection();
+			container.AddClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.AllUnprivileged});
+			var client = container.BuildServiceProvider().GetRequiredService<IDiscordClient>();
+			
 			await client.ConnectAsync();
 			
 			await Task.Delay(-1);

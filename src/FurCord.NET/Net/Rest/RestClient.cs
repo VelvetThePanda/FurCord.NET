@@ -55,7 +55,7 @@ namespace FurCord.NET
 		
 		public RestClient(DiscordConfiguration config)
 		{
-			var handler = new HttpClientHandler()
+			var handler = new HttpClientHandler
 			{
 				UseCookies = false,
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
