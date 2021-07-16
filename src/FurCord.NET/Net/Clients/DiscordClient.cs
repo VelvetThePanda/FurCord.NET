@@ -40,11 +40,11 @@ namespace FurCord.NET.Net
 		private readonly DiscordConfiguration _configuration;
 
 
-		public DiscordClient(DiscordConfiguration config, IWebSocketClient socket, IRestClient rest)
+		public DiscordClient(DiscordConfiguration config, ILogger<DiscordClient> logger, IWebSocketClient socket, IRestClient rest)
 		{
 			_configuration = config;
 
-			_logger = config.LoggerInstanceFactory.CreateLogger<IDiscordClient>();
+			_logger = logger;
 			
 			_token = Utils.Utils.GetFormattedToken(config.TokenType, config.Token);
 			_intents = config.Intents;

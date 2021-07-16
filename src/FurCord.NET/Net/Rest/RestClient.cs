@@ -30,11 +30,9 @@ namespace FurCord.NET
 		private readonly ConcurrentDictionary<string, RestBucket> _buckets = new();
 
 		private readonly DiscordConfiguration _config;
-		private readonly ILogger _logger;
+		private readonly ILogger<IRestClient> _logger;
 
 		private const string BaseUrl = "https://discord.com/api/v9";
-
-		public static IRestClient CreateNew(DiscordConfiguration config) => new RestClient(config);
 		
 		/* TODO: Possibly add a request queue? Seems uncessary because buckets are self-contained, but it's up for consideration. */
 		
@@ -53,7 +51,7 @@ namespace FurCord.NET
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 		}
 		
-		public RestClient(DiscordConfiguration config)
+		public RestClient(DiscordConfiguration config, ILogger<IRestClient> logger)
 		{
 			var handler = new HttpClientHandler
 			{
@@ -61,7 +59,7 @@ namespace FurCord.NET
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
 			};
 
-			_logger = config.LoggerInstanceFactory.CreateLogger<RestClient>();
+			_logger = logger;
 			_client = new(handler) {BaseAddress = new(BaseUrl)};
 
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "Bot " + config.Token);
