@@ -11,7 +11,7 @@ namespace FurCord.NET.Testing
 		{
 			var client = new DiscordClient(new(File.ReadAllText("./token.txt"))
 			{
-				Intents = GatewayIntents.AllUnprivileged
+				Intents = GatewayIntents.AllUnprivileged,
 			});
 
 			await client.ConnectAsync();

@@ -11,31 +11,31 @@ namespace FurCord.NET.Net
 	/// </summary>
 	public sealed class DiscordConfiguration
 	{
-		public string Token { internal get; set; }
-		public TokenType TokenType { internal get; set; }
+		public string Token { get; }
+		public TokenType TokenType { get; }
 
-		public ILoggerFactory? LoggerInstanceFactory { internal get; set; }
+		public ILoggerFactory? LoggerInstanceFactory { internal get; init; }
 
-		public GatewayIntents Intents { internal get; set; } = GatewayIntents.AllUnprivileged;
+		public GatewayIntents Intents { internal get; init; }
 		
 		public WebSocketClientFactoryDelegate WebSocketClientFactory
 		{
 			internal get => _socketClientFactory;
-			set => _socketClientFactory = value ?? throw new InvalidOperationException("Delegate must be non-null.");
+			init => _socketClientFactory = value ?? throw new InvalidOperationException("Delegate must be non-null.");
 		}
 		
-		private WebSocketClientFactoryDelegate _socketClientFactory = WebSocketClient.CreateNew;
+		private readonly WebSocketClientFactoryDelegate _socketClientFactory;
 
 		public RestClientFactoryDelegate RestClientFactory
 		{
 			internal get => _restClientFactory;
-			set => _restClientFactory = value ?? throw new InvalidOperationException("Delegate must be non-null.");
+			init => _restClientFactory = value ?? throw new InvalidOperationException("Delegate must be non-null.");
 		}
 
-		private RestClientFactoryDelegate _restClientFactory = RestClient.CreateNew;
+		private readonly RestClientFactoryDelegate _restClientFactory;
 
-		public LogLevel MinimumLogLevel { get; } = LogLevel.Trace;
-		public string LogTimestampFormat { get; } = "yy-MM-dd hh:mm ss";
+		public LogLevel MinimumLogLevel { get; init; }
+		public string LogTimestampFormat { get; init; }
 		public DiscordConfiguration(string token, TokenType tokenType = TokenType.Bot, ILoggerFactory? loggerInstanceFactory = null, 
 			GatewayIntents intents = default, LogLevel minimumLogLevel = LogLevel.Information, 
 			string logTimestampFormat = "yy-MM-dd hh:mm ss", RestClientFactoryDelegate? restClientFactory = null, WebSocketClientFactoryDelegate? socketClientFactory = null)
