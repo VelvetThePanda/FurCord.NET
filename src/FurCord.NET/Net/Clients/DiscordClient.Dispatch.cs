@@ -65,7 +65,7 @@ namespace FurCord.NET.Net
 		
 		private async Task OnInvalidSessionAsync(bool resumable)
 		{
-			_logger.LogTrace("Received INVALID SESSION (OP9, {Resumable}", resumable);
+			_logger.LogTrace("Received INVALID SESSION (OP9, Resumable: {Resumable})", resumable);
 
 			if (!resumable)
 			{
