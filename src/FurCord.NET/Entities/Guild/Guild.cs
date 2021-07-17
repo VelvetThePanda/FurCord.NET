@@ -32,6 +32,8 @@ namespace FurCord.NET.Entities
 
 		public ulong OwnerId { get; internal set; }
 
+		public IMember CurrentMember => Members[_client.CurrentUser.Id];
+
 		ulong IGuild.AfkChannelId { get; set; }
 
 		public int? MaxMembers { get; internal set; }
@@ -45,7 +47,7 @@ namespace FurCord.NET.Entities
 		public IReadOnlyDictionary<ulong, IMember> Members => _members;
 
 		public IChannel? AfkChannel => GetChanenlFromCache((this as IGuild).AfkChannelId);
-		
+
 		int IGuild.AfkTimeout { get; set; }
 
 		public MFALevel MFALevel { get; internal set; }

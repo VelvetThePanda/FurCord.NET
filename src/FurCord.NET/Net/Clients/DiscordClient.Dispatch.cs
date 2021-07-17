@@ -162,11 +162,7 @@ namespace FurCord.NET.Net
 				case "GUILD_CREATE":
 					var id = (ulong) job["id"]!;
 					var cachedGuild = _guilds[id] = job.ToObject<Guild>()!;
-						
 					
-					
-					
-					cachedGuild = _guilds[id];
 					cachedGuild.Client = this;
 					cachedGuild.PopulateObjects();
 					

@@ -50,6 +50,9 @@ namespace FurCord.NET.Entities
 		
 		[JsonIgnore]
 		public IChannel? AfkChannel { get; }
+
+		[JsonIgnore]
+		public IMember CurrentMember { get; }
 		
 		[JsonProperty("afk_timeout")]
 		internal int AfkTimeout { get; set; }

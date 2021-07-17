@@ -11,7 +11,7 @@ namespace FurCord.NET.Testing
 		public static async Task Main(string[] args)
 		{
 			var container = new ServiceCollection();
-			container.AddFurCordClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.AllUnprivileged});
+			container.AddFurCordClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.All});
 			var client = container.BuildServiceProvider().GetRequiredService<IDiscordClient>();
 			
 			await client.ConnectAsync();
