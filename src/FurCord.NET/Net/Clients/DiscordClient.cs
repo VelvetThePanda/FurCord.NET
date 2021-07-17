@@ -24,6 +24,7 @@ namespace FurCord.NET.Net
 		private readonly ConcurrentDictionary<ulong, IGuild> _guilds = new();
 		
 		private bool _running;
+		private bool _initialized;
 		private bool _disconnecting;
 
 		private readonly ILogger<IDiscordClient> _logger;
@@ -71,7 +72,8 @@ namespace FurCord.NET.Net
 			
 			var gatewayRestRequest = new RestRequest("gateway/bot", RestMethod.GET);
 			_gatewayInfo = await _rest.DoRequestAsync<GatewayInfo>(gatewayRestRequest);
-
+			
+			
 			var gatewayUri = new QueryUriBuilder(_gatewayInfo.Url).AddParameter("v", "8").AddParameter("encoding", "json").Build();
 			
 			await _socketClient.ConnectAsync(gatewayUri);

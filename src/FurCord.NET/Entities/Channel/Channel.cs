@@ -5,7 +5,7 @@ namespace FurCord.NET.Entities
 	/// <summary>
 	/// Concrete implementation of <see cref="IChannel"/>
 	/// </summary>
-	public class Channel : IChannel
+	public sealed class Channel : IChannel
 	{
 		public ulong Id { get; internal set; }
 		
