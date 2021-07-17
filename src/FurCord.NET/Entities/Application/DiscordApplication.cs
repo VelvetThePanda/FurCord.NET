@@ -52,7 +52,9 @@ namespace FurCord.NET.Entities
 		
 		[JsonProperty("verify_key")]
 		public string VerifyKey { get; internal set; }
-		//public IDiscordTeam? Team { get; internal set; }
+		
+		[JsonProperty("team")]
+		public DiscordTeam? Team { get; internal set; }
 		
 		[JsonProperty("guild_id")]
 		public ulong? GuildId { get; internal set; }
