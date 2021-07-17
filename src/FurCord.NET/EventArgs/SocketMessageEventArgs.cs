@@ -1,8 +1,5 @@
 using System;
-using System.IO;
-using System.Text;
 using Emzi0767.Utilities;
-using FurCord.NET.Utils;
 
 namespace FurCord.NET
 {

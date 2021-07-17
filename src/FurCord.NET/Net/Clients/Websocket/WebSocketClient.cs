@@ -1,14 +1,11 @@
 using System;
-using System.Buffers;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Emzi0767.Utilities;
 using Microsoft.Toolkit.HighPerformance.Buffers;
-using Newtonsoft.Json;
 
 namespace FurCord.NET.Net
 {

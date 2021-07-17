@@ -1,6 +1,5 @@
 using System;
 using FurCord.NET.Net.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace FurCord.NET.Net
 {
