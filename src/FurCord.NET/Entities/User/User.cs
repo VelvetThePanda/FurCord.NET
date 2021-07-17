@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using FurCord.NET.Net;
+using FurCord.NET.Utils;
 using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities
@@ -13,7 +14,7 @@ namespace FurCord.NET.Entities
 		
 		public string Username { get; internal set; }
 
-		public string AvatarUrl { get; internal set; }
+		public string AvatarUrl => !string.IsNullOrEmpty(AvatarHash) ? CDN.UserAvatar(Id, AvatarHash) : CDN.DefaultAvatar(Id, short.Parse(Discriminator));
 		
 		[JsonProperty("avatar")]
 		public string AvatarHash { get; internal set; }

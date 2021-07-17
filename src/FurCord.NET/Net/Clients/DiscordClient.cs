@@ -13,14 +13,15 @@ namespace FurCord.NET.Net
 	internal sealed partial class DiscordClient : IDiscordClient
 	{
 		public int Ping { get; private set; }
-		public ClientState State { get; private set; } = ClientState.Disconnected;
-
-		DiscordConfiguration IDiscordClient.Configuration => _configuration;
-
+		
 		public IUser CurrentUser { get; private set; }
-
+		public ClientState State { get; private set; } = ClientState.Disconnected;
+		
+		DiscordConfiguration IDiscordClient.Configuration => _configuration;
+		
+		private readonly DiscordConfiguration _configuration;
+		
 		public IReadOnlyDictionary<ulong, IGuild> Guilds => _guilds;
-
 		private readonly ConcurrentDictionary<ulong, IGuild> _guilds = new();
 		
 		private bool _running;
@@ -30,17 +31,15 @@ namespace FurCord.NET.Net
 		private readonly ILogger<IDiscordClient> _logger;
 		
 		private readonly string _token;
-		private readonly GatewayIntents _intents;
 		private GatewayInfo _gatewayInfo;
-		
+		private readonly GatewayIntents _intents;
+
 		private CancellationTokenSource _cts;
 		private CancellationToken _cancellation;
 
 		private readonly IRestClient _rest;
 		public readonly IWebSocketClient _socketClient;
-		private readonly DiscordConfiguration _configuration;
-
-
+		
 		public DiscordClient(DiscordConfiguration config, ILogger<DiscordClient> logger, IWebSocketClient socket, IRestClient rest)
 		{
 			_configuration = config;
@@ -65,7 +64,7 @@ namespace FurCord.NET.Net
 		public async Task ConnectAsync()
 		{
 			if (_running)
-				throw new InvalidOperationException("Client is already started!");
+				throw new InvalidOperationException("This client is already connected!");
 			
 			_running = true;
 			_disconnecting = false;
@@ -76,8 +75,6 @@ namespace FurCord.NET.Net
 				_gatewayInfo = await _rest.DoRequestAsync<GatewayInfo>(gatewayRestRequest);
 				CurrentUser = await GetCurrentUserAsync();
 			}
-			
-			
 			
 			var gatewayUri = new QueryUriBuilder(_gatewayInfo.Url).AddParameter("v", "8").AddParameter("encoding", "json").Build();
 			
@@ -111,6 +108,8 @@ namespace FurCord.NET.Net
 		{
 			var request = new RestRequest("users/@me", RestMethod.GET);
 			var result = await _rest.DoRequestAsync<User>(request);
+
+			(result as ISnowflake).Client = this;
 			return result;
 		}
 		
