@@ -47,10 +47,10 @@ namespace FurCord.NET.Net
 
 		private async Task HandleDispatchAsync(IWebSocketClient client, SocketMessageEventArgs args)
 		{
-			_logger.LogInformation($"Payload: {args.Message}");
+			_logger.LogTrace("Payload: {Payload}", args.Message);
 			var payload = JsonConvert.DeserializeObject<GatewayPayload>(args.Message)!;
 			
-			_lastSequence ??= payload.Sequence ?? _lastSequence;
+			_lastSequence = payload.Sequence ?? _lastSequence;
 			var dispatchTask = payload.OpCode switch
 			{
 				GatewayOpCode.Dispatch => HandleGatewayDispatchAsync(payload),
