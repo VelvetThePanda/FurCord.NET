@@ -69,9 +69,14 @@ namespace FurCord.NET.Net
 			
 			_running = true;
 			_disconnecting = false;
+
+			if (_gatewayInfo is null)
+			{
+				var gatewayRestRequest = new RestRequest("gateway/bot", RestMethod.GET);
+				_gatewayInfo = await _rest.DoRequestAsync<GatewayInfo>(gatewayRestRequest);
+				CurrentUser = await GetCurrentUserAsync();
+			}
 			
-			var gatewayRestRequest = new RestRequest("gateway/bot", RestMethod.GET);
-			_gatewayInfo = await _rest.DoRequestAsync<GatewayInfo>(gatewayRestRequest);
 			
 			
 			var gatewayUri = new QueryUriBuilder(_gatewayInfo.Url).AddParameter("v", "8").AddParameter("encoding", "json").Build();
@@ -100,6 +105,13 @@ namespace FurCord.NET.Net
 			_cancellation = _cts.Token;
 			
 			await ConnectAsync().ConfigureAwait(false);
+		}
+
+		private async Task<IUser> GetCurrentUserAsync()
+		{
+			var request = new RestRequest("users/@me", RestMethod.GET);
+			var result = await _rest.DoRequestAsync<User>(request);
+			return result;
 		}
 		
 		public async Task<IMessage> SendMessageAsync(IUser user, IMessage message)
