@@ -124,7 +124,7 @@ namespace FurCord.NET.Net
 		
 		internal async Task ReceiveLoopAsync()
 		{
-			using var buffer = new ArrayPoolBufferWriter<byte>();
+			using var buffer = new ArrayPoolBufferWriter<byte>(IncomingChunkSize);
 			try
 			{
 				while (!_cancellation.IsCancellationRequested)

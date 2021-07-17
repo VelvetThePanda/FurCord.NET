@@ -27,7 +27,6 @@ namespace FurCord.NET.Entities
 		/// </summary>
 		[JsonProperty("timestamp")]
 		public DateTimeOffset CreationDate => DiscordEpoch.AddSeconds(Id << 22);
-		//TODO: Add client.
 
 		private static readonly DateTimeOffset DiscordEpoch = new DateTime(2015, 1, 1);
 	}
