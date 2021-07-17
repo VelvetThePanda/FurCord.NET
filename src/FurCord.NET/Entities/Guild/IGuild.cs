@@ -56,5 +56,7 @@ namespace FurCord.NET.Entities
 
 		[JsonProperty("mfa_level")]
 		public MFALevel MFALevel { get; }
+
+		internal void PopulateObjects();
 	}
 }

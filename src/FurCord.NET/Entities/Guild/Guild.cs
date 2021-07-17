@@ -57,22 +57,32 @@ namespace FurCord.NET.Entities
 		[JsonProperty("members")]
 		[JsonConverter(typeof(SnowflakeDictionaryConverter<Member>))]
 		internal ConcurrentDictionary<ulong, IMember> _members = new();
-		private IDiscordClient _client;
+		private IDiscordClient _client => (this as ISnowflake).Client;
 
 
 		/// <summary>
 		/// Populates this guild's cache by setting GuildId and Guild properties appropriately.
 		/// </summary>
-		internal void PopulateObjects()
+		void IGuild.PopulateObjects()
 		{
 			foreach ((_, var member) in _members!)
 			{
+				// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+				if (member.Client is not null)
+					continue;
+				
+				member.Client = _client;
 				member.GuildId = Id;
 				member.Guild = this;
 			}
 			
 			foreach ((_, var chn) in _channels)
 			{
+				// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+				if (chn.Client is not null)
+					continue;
+				
+				chn.Client = _client;
 				chn.GuildId = Id;
 				chn.Guild = this;
 			}

@@ -96,7 +96,7 @@ namespace FurCord.NET.Net
 			
 			_cts = new();
 			_cancellation = _cts.Token;
-			await Task.Delay(5000);
+			
 			await ConnectAsync().ConfigureAwait(false);
 		}
 		

@@ -13,7 +13,7 @@ namespace FurCord.NET.Net
 	internal partial class DiscordClient
 	{
 		private long? _lastSequence;
-		private string _sessionId;
+		private string? _sessionId;
 		private int _heartbeatInterval;
 
 		private DateTime _lastHeartbeat;
@@ -56,10 +56,26 @@ namespace FurCord.NET.Net
 				GatewayOpCode.Dispatch => HandleGatewayDispatchAsync(payload),
 				GatewayOpCode.Reconnect => throw new NotSupportedException(),
 				GatewayOpCode.Hello => OnHelloAsync((payload.Data as JObject)!.ToObject<HelloPayload>()!),
+				GatewayOpCode.InvalidSession => OnInvalidSessionAsync((bool)payload.Data),
 				GatewayOpCode.HeartbeatAck => AckHeartBeatAsync(),
 				_ => throw new NotSupportedException($"Unknown dispatch: {payload.EventName} | {payload.Data}")
 			};
 			await dispatchTask;
+		}
+		private async Task OnInvalidSessionAsync(bool resumable)
+		{
+			_logger.LogTrace("Received INVALID SESSION (OP9, {Resumable}", resumable);
+
+			if (!resumable)
+			{
+				_sessionId = null;
+				await IdentifyAsync().ConfigureAwait(false);
+			}
+			else
+			{
+				await Task.Delay(3000).ConfigureAwait(false);
+				await ResumeAsync().ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -102,7 +118,6 @@ namespace FurCord.NET.Net
 			};
 
 			await _socketClient.SendMessageAsync(JsonConvert.SerializeObject(gatewayResumePayload));
-			Console.WriteLine("Resumed Session.");
 		}
 		
 		/// <summary>
@@ -130,7 +145,7 @@ namespace FurCord.NET.Net
 		{
 			if (payload.Data is not JObject job)
 			{
-				//_logger.LogDebug("Payload data was not of expected type. This is probably safe to ignore.");
+				_logger.LogDebug("Payload data was not of expected type. This is probably safe to ignore. Payload: {Payload}", payload.Data);
 				return;
 			}
 
@@ -142,7 +157,24 @@ namespace FurCord.NET.Net
 
 					foreach (var g in guilds)
 						_guilds[g.Id] = g;
-					Console.WriteLine($"Added {guilds.Count()} guilds.");
+					break;
+				
+				case "GUILD_CREATE":
+					var id = (ulong) job["id"]!;
+					var cachedGuild = _guilds[id] = job.ToObject<Guild>()!;
+						
+					
+					
+					
+					cachedGuild = _guilds[id];
+					cachedGuild.Client = this;
+					cachedGuild.PopulateObjects();
+					
+					break;
+				
+				
+				case "RESUME":
+					_logger.LogDebug("Resumed session.");
 					break;
 			}
 			
