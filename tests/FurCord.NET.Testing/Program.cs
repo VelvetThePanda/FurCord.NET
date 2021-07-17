@@ -19,12 +19,16 @@ namespace FurCord.NET.Testing
 			
 			container.AddLogging(l => l.AddSerilog(logConfig.CreateLogger()));
 			
-			container.AddFurCordClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.All});
-			var client = container.BuildServiceProvider().GetRequiredService<IDiscordClient>();
+			container.AddFurCordClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.All & ~GatewayIntents.GuildPresences});
+			var builtContainer = container.BuildServiceProvider();
+			var client = builtContainer.GetRequiredService<IDiscordClient>();
 			
 			await client.ConnectAsync();
 
-			await Task.Delay(20000);
+			var ws = builtContainer.GetRequiredService<IWebSocketClient>();
+
+			await Task.Delay(5000);
+			await ws.DisconnectAsync();
 			
 			await Task.Delay(-1);
 		}

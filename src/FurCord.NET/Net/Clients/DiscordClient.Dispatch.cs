@@ -57,11 +57,12 @@ namespace FurCord.NET.Net
 				GatewayOpCode.Reconnect => throw new NotSupportedException(),
 				GatewayOpCode.Hello => OnHelloAsync((payload.Data as JObject)!.ToObject<HelloPayload>()!),
 				GatewayOpCode.InvalidSession => OnInvalidSessionAsync((bool)payload.Data),
-				GatewayOpCode.HeartbeatAck => AckHeartBeatAsync(),
+				GatewayOpCode.HeartbeatAck => AckHeartbeatAsync(),
 				_ => throw new NotSupportedException($"Unknown dispatch: {payload.EventName} | {payload.Data}")
 			};
-			await dispatchTask;
+			await dispatchTask.ConfigureAwait(false);
 		}
+		
 		private async Task OnInvalidSessionAsync(bool resumable)
 		{
 			_logger.LogTrace("Received INVALID SESSION (OP9, {Resumable}", resumable);
@@ -79,9 +80,9 @@ namespace FurCord.NET.Net
 		}
 
 		/// <summary>
-		/// Acknowledges 
+		/// Acknowledges  
 		/// </summary>
-		private async Task AckHeartBeatAsync()
+		private async Task AckHeartbeatAsync()
 		{
 			_skippedHeartbeats--;
 			Ping = (int)(DateTime.Now - _lastHeartbeat).TotalMilliseconds;
