@@ -16,6 +16,7 @@ namespace FurCord.NET.Net
 	public sealed class WebSocketClient : IWebSocketClient
 	{
 		public bool IsConnected { get; private set; }
+		private bool _disconnecting;
 		
 		// Headers to send with the request.
 		public ConcurrentDictionary<string, string> Headers { get; } = new();
@@ -75,7 +76,7 @@ namespace FurCord.NET.Net
 		public async Task DisconnectAsync(int code = -1, string message = "")
 		{
 			await _sendingLock.WaitAsync().ConfigureAwait(false);
-
+			_disconnecting = true;
 			if (_webSocket.State is WebSocketState.Open or WebSocketState.CloseReceived) 
 				await _webSocket.CloseAsync((WebSocketCloseStatus) code, message, CancellationToken.None).ConfigureAwait(false);
 
@@ -90,6 +91,7 @@ namespace FurCord.NET.Net
 				await _socketClosed.InvokeAsync(this, new() {CloseCode = code, CloseMessage = message}).ConfigureAwait(false);
 			}
 			_sendingLock.Release();
+			_disconnecting = false;
 		}
 		
 		public async Task SendMessageAsync(string message)
@@ -154,8 +156,10 @@ namespace FurCord.NET.Net
 						case WebSocketMessageType.Close:
 							//This *shouldn't* break(?). If it does go yell at stehpentoub. //
 							// This is going based off this comment https://github.com/dotnet/runtime/issues/25093#issuecomment-366827102 //
+							if (_disconnecting)
+								return; 
 							IsConnected = false;
-							await _webSocket.CloseOutputAsync(_webSocket.CloseStatus.Value, _webSocket.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
+							await _webSocket.CloseAsync(_webSocket.CloseStatus.Value, _webSocket.CloseStatusDescription, CancellationToken.None).ConfigureAwait(false);
 							await _socketClosed.InvokeAsync(this, new() {CloseCode = (int) _webSocket.CloseStatus, CloseMessage = _webSocket.CloseStatusDescription!});
 							break;
 
