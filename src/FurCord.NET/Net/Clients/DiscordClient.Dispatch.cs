@@ -43,11 +43,17 @@ namespace FurCord.NET.Net
 			}
 		}
 
+		private async Task SendGatewayMessageAsync(string message)
+		{
+			_logger.LogTrace("[Gateway ↑] {Message}", message);
+			await _socketClient.SendMessageAsync(message);
+		}
+		
 		#region Gateway Dispatch
 
 		private async Task HandleDispatchAsync(IWebSocketClient client, SocketMessageEventArgs args)
 		{
-			_logger.LogTrace("Payload: {Payload}", args.Message);
+			_logger.LogTrace("[Gateway ↓] {Payload}", args.Message);
 			var payload = JsonConvert.DeserializeObject<GatewayPayload>(args.Message)!;
 			
 			_lastSequence = payload.Sequence ?? _lastSequence;
@@ -62,10 +68,16 @@ namespace FurCord.NET.Net
 			};
 			await dispatchTask.ConfigureAwait(false);
 		}
+
+		private async Task OnReconnectAsync()
+		{
+			_logger.LogDebug("Received RECONNECT (OP7). Reconnecting.");
+			await _socketClient.DisconnectAsync(-1, "Acknowledged OP7");
+		}
 		
 		private async Task OnInvalidSessionAsync(bool resumable)
 		{
-			_logger.LogTrace("Received INVALID SESSION (OP9, Resumable: {Resumable})", resumable);
+			_logger.LogDebug("Received INVALID SESSION (OP9, Resumable: {Resumable})", resumable);
 
 			if (!resumable)
 			{
@@ -118,7 +130,7 @@ namespace FurCord.NET.Net
 				}
 			};
 
-			await _socketClient.SendMessageAsync(JsonConvert.SerializeObject(gatewayResumePayload));
+			await SendGatewayMessageAsync(JsonConvert.SerializeObject(gatewayResumePayload)).ConfigureAwait(false);
 		}
 		
 		/// <summary>
@@ -137,7 +149,7 @@ namespace FurCord.NET.Net
 				}
 			};
 
-			await _socketClient.SendMessageAsync(JsonConvert.SerializeObject(payload));
+			await SendGatewayMessageAsync(JsonConvert.SerializeObject(payload)).ConfigureAwait(false);
 		}
 		
 		#endregion
@@ -163,12 +175,9 @@ namespace FurCord.NET.Net
 				case "GUILD_CREATE":
 					var id = (ulong) job["id"]!;
 					var cachedGuild = _guilds[id] = job.ToObject<Guild>()!;
-					
 					cachedGuild.Client = this;
 					cachedGuild.PopulateObjects();
-					
 					break;
-				
 				
 				case "RESUME":
 					_logger.LogDebug("Resumed session.");
