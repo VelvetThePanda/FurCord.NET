@@ -1,25 +1,26 @@
 ﻿using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace FurCord.NET
 {
 	public struct RESTMessageCreatePayload
 	{
-		[JsonPropertyName("content")]
+		[JsonProperty("content")]
 		public string Content { get; set; }
 		
-		[JsonPropertyName("tts")]
+		[JsonProperty("tts")]
 		public bool TTS { get; set; }
 
-		[JsonPropertyName("message_reference")]
+		[JsonProperty("message_reference")]
 		public RESTMessageReference Reply { get; set; }
 	}
 
 	public struct RESTMessageReference
 	{
-		[JsonPropertyName("message_id")]
+		[JsonProperty("message_id")]
 		public ulong MessageId { get; set; }
 
-		[JsonPropertyName("fail_if_not_exists")]
+		[JsonProperty("fail_if_not_exists")]
 		public bool FailIfNotExists => false;
 	}
 }
