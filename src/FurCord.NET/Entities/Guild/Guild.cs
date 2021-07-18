@@ -70,10 +70,8 @@ namespace FurCord.NET.Entities
 			foreach ((_, var member) in _members!)
 			{
 				// ReSharper disable once ConditionIsAlwaysTrueOrFalse
-				if (member.Client is not null)
-					continue;
-				
 				member.Client = _client;
+				member.User.Client = _client;
 				member.GuildId = Id;
 				member.Guild = this;
 			}
@@ -81,9 +79,6 @@ namespace FurCord.NET.Entities
 			foreach ((_, var chn) in _channels)
 			{
 				// ReSharper disable once ConditionIsAlwaysTrueOrFalse
-				if (chn.Client is not null)
-					continue;
-				
 				chn.Client = _client;
 				chn.GuildId = Id;
 				chn.Guild = this;

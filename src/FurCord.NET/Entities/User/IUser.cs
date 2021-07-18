@@ -51,6 +51,6 @@ namespace FurCord.NET.Entities
 		/// <param name="message">The message to send.</param>
 		/// <returns>The returned message.</returns>
 		/// <exception cref="InvalidOperationException">The object's client was not set.</exception>
-		public Task<IMessage> SendMessageAsync(IMessage message);
+		public Task<IMessage> SendMessageAsync(string message);
 	}
 }

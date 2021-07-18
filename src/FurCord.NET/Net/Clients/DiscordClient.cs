@@ -5,8 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using FurCord.NET.Entities;
 using FurCord.NET.Net.Enums;
+using FurCord.NET.Net.Payloads;
 using FurCord.NET.Utils;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace FurCord.NET.Net
 {
@@ -113,9 +115,17 @@ namespace FurCord.NET.Net
 			return result;
 		}
 		
-		public async Task<IMessage> SendMessageAsync(IUser user, IMessage message)
+		public async Task<IMessage> SendMessageAsync(IUser user, string content)
 		{
-			return null;
+			var payload = new RESTMessageCreatePayload() {Content = content};
+			
+			var chnRequest = new JsonRestRequest<RESTCreateDMPayload>(Routes.CreateDM, new(user.Id), RestMethod.POST);
+			var channel = await _rest.DoRequestAsync<Channel>(chnRequest);
+
+			var msgRequest = new JsonRestRequest<RESTMessageCreatePayload>(Routes.Messages, payload, RestMethod.POST, new() {["channel_id"] = channel.Id});
+			var message = await _rest.DoRequestAsync<Message>(msgRequest);
+
+			return message;
 		}
 
 		

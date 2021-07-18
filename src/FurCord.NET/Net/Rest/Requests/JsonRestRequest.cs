@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.Json;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace FurCord.NET
 {
@@ -10,13 +11,15 @@ namespace FurCord.NET
 	/// Represents a REST request that contains an object serialized to JSON.
 	/// </summary>
 	/// <typeparam name="T">The type to deserialize.</typeparam>
-	public sealed class JsonRestRequest<T> : RestRequest
+	public sealed class JsonRestRequest<T> : JsonRestRequest
 	{
 		/// <summary>
 		/// The content of this request.
 		/// </summary>
 		[JsonPropertyName("content")]
-		public T Content { get; set; }
+		public override object Content { get; internal set; }
+		
+		public override string SerializedContent { get; internal set; }
 
 		/// <summary>
 		/// Constructs a new <see cref="JsonRestRequest{T}"/>.
@@ -33,15 +36,23 @@ namespace FurCord.NET
 				throw new InvalidOperationException("GET requests cannot have a body.");
 			
 			Content = content;
+			SerializedContent = JsonConvert.SerializeObject(content);
 		}
 		
 		/// <inheritdoc cref="RestRequest.CreateRequestMessage"/>
 		public override HttpRequestMessage CreateRequestMessage(string path)
 		{
 			var request = base.CreateRequestMessage(path);
-			request.Content = new StringContent(JsonSerializer.Serialize(Content));
+			request.Content = new StringContent(SerializedContent);
 			request.Content.Headers.ContentType = new("application/json");
 			return request;
 		}
+	}
+
+	public class JsonRestRequest : RestRequest
+	{
+		public virtual object Content { get; internal set; }
+		public virtual string SerializedContent { get; internal set; }
+		public JsonRestRequest(string path, RestMethod method, Dictionary<string, object>? route_params = null) : base(path, method, route_params) { }
 	}
 }

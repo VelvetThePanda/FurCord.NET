@@ -19,6 +19,7 @@ namespace FurCord.NET.Net
 		private DateTime _lastHeartbeat;
 
 		private int _skippedHeartbeats;
+		private bool _guildDownloadComplete;
 
 		private async Task HeartbeatLoopAsync()
 		{
@@ -167,7 +168,7 @@ namespace FurCord.NET.Net
 				case "READY":
 					_sessionId = job["session_id"]!.ToString();
 					var guilds = job["guilds"]!.ToObject<IEnumerable<Guild>>()!;
-
+					_guildDownloadComplete = false;
 					foreach (var g in guilds)
 						_guilds[g.Id] = g;
 					break;
@@ -177,6 +178,12 @@ namespace FurCord.NET.Net
 					var cachedGuild = _guilds[id] = job.ToObject<Guild>()!;
 					cachedGuild.Client = this;
 					cachedGuild.PopulateObjects();
+
+					var oldDownloadStatus = _guildDownloadComplete;
+					_guildDownloadComplete = _guilds.All(g => !g.Value.Unavailable);
+					
+					//if (!oldDownloadComplete && _guildDownloadComplete) await 
+					
 					break;
 				
 				case "RESUME":

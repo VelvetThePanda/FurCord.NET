@@ -19,7 +19,7 @@ namespace FurCord.NET.Net
 		public Task ConnectAsync();
 		public Task DisconnectAsync();
 
-		public Task<IMessage> SendMessageAsync(IUser user, IMessage message);
+		public Task<IMessage> SendMessageAsync(IUser user, string content);
 		
 	}
 }

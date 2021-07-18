@@ -116,7 +116,7 @@ namespace FurCord.NET
 				return;
 			}
 			
-			_logger.LogTrace("[Rest ↑] {Route} {Payload}", request.Route, (request as JsonRestRequest)?.Content ?? "");
+			_logger.LogTrace("[Rest ↑] {Route} {Payload}", req.RequestUri, (request as JsonRestRequest)?.SerializedContent ?? "");
 			var res = await _client.SendAsync(req);
 			var content = await res.Content.ReadAsStringAsync();
 			_logger.LogTrace("[Rest ↓] {ResponseCode} {ResponseMessage}", res.StatusCode, content);

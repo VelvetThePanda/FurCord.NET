@@ -30,9 +30,6 @@ namespace FurCord.NET.Entities
 		/// </summary>
 		/// <param name="message">The message to send.</param>
 		/// <returns>The returned message.</returns>
-		/// <exception cref="InvalidOperationException">The object's client was not set.</exception>
-		public Task<IMessage> SendMessageAsync(IMessage message) 
-			=> (this as ISnowflake).Client?.SendMessageAsync(this, message) ?? 
-			   throw new InvalidOperationException("This object does not have a client associated with it. This is likely a cache error.");
+		public Task<IMessage> SendMessageAsync(string message) => (this as ISnowflake).Client.SendMessageAsync(this, message);
 	}
 }

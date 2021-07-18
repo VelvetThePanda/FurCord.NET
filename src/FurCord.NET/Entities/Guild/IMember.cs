@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FurCord.NET.Entities.Converters;
 using Newtonsoft.Json;
 
 namespace FurCord.NET.Entities
@@ -38,6 +39,9 @@ namespace FurCord.NET.Entities
 		
 		[JsonProperty("roles")]
 		internal IReadOnlyList<ulong> Roles { get; set; }
-
+		
+		
+		internal IUser User { get; set; }
+		
 	}
 }

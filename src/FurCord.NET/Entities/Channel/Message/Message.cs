@@ -18,8 +18,7 @@ namespace FurCord.NET.Entities
 		public IReadOnlyDictionary<ulong, IUser> MentionedUsers => _mentionedUsers;
 
 		public IReadOnlyDictionary<ulong, IChannel> MentionedChannels => _mentionedChannels;
-
-		[JsonProperty("content")]
+		
 		public string Content { get; internal set; }
 		
 		[JsonProperty("timestamp")]

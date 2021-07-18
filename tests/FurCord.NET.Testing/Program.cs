@@ -19,7 +19,7 @@ namespace FurCord.NET.Testing
 			
 			container.AddLogging(l => l.AddSerilog(logConfig.CreateLogger()));
 			
-			container.AddFurCordClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.All & ~GatewayIntents.GuildPresences});
+			container.AddFurCordClient(new(File.ReadAllText("./token.txt")) {Intents = GatewayIntents.All});
 			var builtContainer = container.BuildServiceProvider();
 			var client = builtContainer.GetRequiredService<IDiscordClient>();
 			
@@ -27,8 +27,10 @@ namespace FurCord.NET.Testing
 
 			var ws = builtContainer.GetRequiredService<IWebSocketClient>();
 
-			await Task.Delay(5000);
-			await ws.DisconnectAsync();
+			await Task.Delay(7000);
+
+			await client.Guilds[721518523704410202].Members[209279906280898562].SendMessageAsync("Poggers! FurCord.NET works!");
+			
 			
 			await Task.Delay(-1);
 		}

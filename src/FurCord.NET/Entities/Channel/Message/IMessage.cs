@@ -14,6 +14,7 @@ namespace FurCord.NET.Entities
 		/// <summary>
 		/// The content of this message, if any.
 		/// </summary>
+		[JsonProperty("content")]
 		public string Content { get; }
 		
 		[JsonProperty("author")]
