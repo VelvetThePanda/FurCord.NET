@@ -121,6 +121,8 @@ namespace FurCord.NET
 			var content = await res.Content.ReadAsStringAsync();
 			_logger.LogTrace("[Rest ↓] {ResponseCode} {ResponseMessage}", res.StatusCode, content);
 			
+			EnsureSuccessStatusCode(res);
+			
 			var ret = new RestResponse((int) res.StatusCode, content, res.Headers);
 
 			if (RestBucket.TryParse(res.Headers, out bucket)) 
