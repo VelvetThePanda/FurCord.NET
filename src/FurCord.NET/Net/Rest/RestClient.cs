@@ -62,7 +62,7 @@ namespace FurCord.NET
 			_logger = logger;
 			_client = new(handler) {BaseAddress = new(BaseUrl)};
 
-			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "Bot " + config.Token);
+			_client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", Utils.Utils.GetFormattedToken(config.TokenType, config.Token));
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 		}
 		
@@ -116,9 +116,11 @@ namespace FurCord.NET
 				return;
 			}
 			
+			_logger.LogTrace("[Rest ↑] {Route} {Payload}", request.Route, (request as JsonRestRequest)?.Content ?? "");
 			var res = await _client.SendAsync(req);
 			var content = await res.Content.ReadAsStringAsync();
-
+			_logger.LogTrace("[Rest ↓] {ResponseCode} {ResponseMessage}", res.StatusCode, content);
+			
 			var ret = new RestResponse((int) res.StatusCode, content, res.Headers);
 
 			if (RestBucket.TryParse(res.Headers, out bucket)) 
@@ -134,6 +136,21 @@ namespace FurCord.NET
 			{
 				requestTcs.TrySetResult(ret);
 			}
+		}
+
+		private void EnsureSuccessStatusCode(HttpResponseMessage message)
+		{
+			Exception? ex = message.StatusCode switch
+			{
+				HttpStatusCode.NotFound => new NotFoundException(),
+				HttpStatusCode.RequestEntityTooLarge => new BadRequestException(),
+				HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized => new UnauthorizedException(),
+				HttpStatusCode.BadRequest or HttpStatusCode.MethodNotAllowed => new BadRequestException(),
+				_ => null
+			};
+			
+			if (ex is not null) 
+				throw ex;
 		}
 	}
 }
