@@ -15,7 +15,9 @@ namespace FurCord.NET.Testing
 
 			var logConfig = new LoggerConfiguration()
 				.MinimumLevel.Verbose()
-				.WriteTo.Console(outputTemplate: "[{Timestamp:h:mm:ss ff tt}] [{Level:u3}] [{SourceContext}] {Message:lj} {Exception:j}{NewLine}");
+				.WriteTo.Console(outputTemplate: "[{Timestamp:h:mm:ss ff tt}] [{Level:u3}] [{SourceContext}] {Message:lj} {Exception:j}{NewLine}")
+				.Filter.ByExcluding("Contains(Payload, '{\"t\":\"PRESENCE_UPDATE\"')")
+				.Filter.ByExcluding("Contains(Payload, '\"Bot ')");
 			
 			container.AddLogging(l => l.AddSerilog(logConfig.CreateLogger()));
 			
@@ -24,13 +26,6 @@ namespace FurCord.NET.Testing
 			var client = builtContainer.GetRequiredService<IDiscordClient>();
 			
 			await client.ConnectAsync();
-
-			var ws = builtContainer.GetRequiredService<IWebSocketClient>();
-
-			await Task.Delay(7000);
-
-			await client.Guilds[721518523704410202].Members[209279906280898562].SendMessageAsync("Poggers! FurCord.NET works!");
-			
 			
 			await Task.Delay(-1);
 		}

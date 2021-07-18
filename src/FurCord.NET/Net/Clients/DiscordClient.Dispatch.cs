@@ -46,7 +46,7 @@ namespace FurCord.NET.Net
 
 		private async Task SendGatewayMessageAsync(string message)
 		{
-			_logger.LogTrace("[Gateway ↑] {Message}", message);
+			_logger.LogTrace("[Gateway ↑] {Payload}", message);
 			await _socketClient.SendMessageAsync(message);
 		}
 		
@@ -61,11 +61,11 @@ namespace FurCord.NET.Net
 			var dispatchTask = payload.OpCode switch
 			{
 				GatewayOpCode.Dispatch => HandleGatewayDispatchAsync(payload),
-				GatewayOpCode.Reconnect => throw new NotSupportedException(),
+				GatewayOpCode.Reconnect => OnReconnectAsync(),
 				GatewayOpCode.Hello => OnHelloAsync((payload.Data as JObject)!.ToObject<HelloPayload>()!),
 				GatewayOpCode.InvalidSession => OnInvalidSessionAsync((bool)payload.Data),
 				GatewayOpCode.HeartbeatAck => AckHeartbeatAsync(),
-				_ => throw new NotSupportedException($"Unknown dispatch: {payload.EventName} | {payload.Data}")
+				_ => Task.CompletedTask
 			};
 			await dispatchTask.ConfigureAwait(false);
 		}
@@ -108,6 +108,7 @@ namespace FurCord.NET.Net
 		private async Task OnHelloAsync(HelloPayload payload)
 		{
 			_heartbeatInterval = payload.HeartbeatInverval;
+			_logger.LogDebug("Starting heartbeat task.");
 			_ = Task.Run(HeartbeatLoopAsync, _cancellation);
 
 			if (string.IsNullOrEmpty(_sessionId))

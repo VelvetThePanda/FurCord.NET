@@ -2,10 +2,9 @@ using System;
 
 namespace FurCord.NET.Net.Enums
 {
-    [Flags]
+    //[Flags]
     public enum GatewayIntents
     {
-
         Guilds = 1 << 0,
         
         GuildMembers = 1 << 1,
