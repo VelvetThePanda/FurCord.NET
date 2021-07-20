@@ -81,6 +81,7 @@ namespace FurCord.NET.Net
 			var gatewayUri = new QueryUriBuilder(_gatewayInfo.Url).AddParameter("v", "8").AddParameter("encoding", "json").Build();
 			
 			await _socketClient.ConnectAsync(gatewayUri);
+			State = ClientState.Connected;
 		}
 
 		public async Task DisconnectAsync()
@@ -92,11 +93,13 @@ namespace FurCord.NET.Net
 
 		private async Task SocketClosed(IWebSocketClient sender, SocketClosedEventArgs e)
 		{
+			State = ClientState.Disconnected;
+			
 			if (_disconnecting) 
 				return;
 			
 			_running = false;
-			
+
 			_logger.LogError("Socket closed. Reconnecting.");
 			_cts.Cancel();
 			
@@ -105,7 +108,11 @@ namespace FurCord.NET.Net
 			
 			await ConnectAsync().ConfigureAwait(false);
 		}
-
+		
+		/// <summary>
+		/// Gets a <see cref="IUser"/> based on the currently authenticated user.
+		/// </summary>
+		/// <returns>The current user.</returns>
 		private async Task<IUser> GetCurrentUserAsync()
 		{
 			var request = new RestRequest("users/@me", RestMethod.GET);

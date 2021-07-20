@@ -29,7 +29,8 @@ namespace FurCord.NET.Net
 				{
 					_skippedHeartbeats++;
 
-					State = _skippedHeartbeats > 5 ? ClientState.Zombied : State;
+					if (_skippedHeartbeats > 5 && (State & ClientState.Zombied) is not ClientState.Zombied)
+						State |= ClientState.Zombied;
 					
 					var heartbeat = new GatewayPayload
 					{
@@ -73,7 +74,7 @@ namespace FurCord.NET.Net
 		private async Task OnReconnectAsync()
 		{
 			_logger.LogDebug("Received RECONNECT (OP7). Reconnecting.");
-			await _socketClient.DisconnectAsync(-1, "Acknowledged OP7");
+			await _socketClient.DisconnectAsync(4000, "Acknowledged OP7");
 		}
 		
 		private async Task OnInvalidSessionAsync(bool resumable)
@@ -98,6 +99,10 @@ namespace FurCord.NET.Net
 		private async Task AckHeartbeatAsync()
 		{
 			_skippedHeartbeats--;
+
+		if ((State & ClientState.Zombied) is ClientState.Zombied)
+			State &= ~ClientState.Zombied;
+			
 			Ping = (int)(DateTime.Now - _lastHeartbeat).TotalMilliseconds;
 		}
 
@@ -108,12 +113,13 @@ namespace FurCord.NET.Net
 		private async Task OnHelloAsync(HelloPayload payload)
 		{
 			_heartbeatInterval = payload.HeartbeatInverval;
-			_logger.LogDebug("Starting heartbeat task.");
-			_ = Task.Run(HeartbeatLoopAsync, _cancellation);
-
+			
 			if (string.IsNullOrEmpty(_sessionId))
 				await IdentifyAsync().ConfigureAwait(false);
 			else await ResumeAsync().ConfigureAwait(false);
+			
+			_logger.LogDebug("Starting heartbeat task.");
+			_ = Task.Run(HeartbeatLoopAsync, _cancellation);
 		}
 		
 		/// <summary>

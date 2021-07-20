@@ -133,6 +133,7 @@ namespace FurCord.NET.Net
 				{
 					// See https://github.com/discord-net/Discord.Net/commit/ac389f5f6823e3a720aedd81b7805adbdd78b66d 
 					// for explanation on the cancellation token
+					// TL;DR passing cancellation token to websocket kills the socket //
 
 					ValueWebSocketReceiveResult result;
 					do

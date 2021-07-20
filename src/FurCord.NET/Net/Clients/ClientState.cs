@@ -1,8 +1,11 @@
+using System;
+
 namespace FurCord.NET.Net
 {
 	/// <summary>
 	/// Represents the current state of a client's connection.
 	/// </summary>
+	[Flags]
 	public enum ClientState
 	{
 		/// <summary>
