@@ -46,7 +46,7 @@ namespace FurCord.NET
 		/// </remarks>
 		internal RestClient(HttpMessageHandler handler)
 		{
-			_logger = new Logger<RestClient>(new NullLoggerFactory());
+			_logger = new NullLogger<IRestClient>();
 			_client = new(handler) {BaseAddress = new(BaseUrl)};
 			_client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "FurCord.NET by VelvetThePanda / v0.1");
 		}
